@@ -40,6 +40,14 @@ DOMAIN-SUFFIX, sdk.e.qq.com, REJECT
 # 快手 gdfp 埋点
 DOMAIN-SUFFIX, gdfp.gifshow.com, REJECT
 
+# ============ 百度联盟 TagTic（NGA 开屏的真实上游）============
+# 76 号包才暴露出来：g1.tagtic.cn/v2/strategy/openscreen 就是开屏策略接口，
+# v2/ad/pre/video 是开屏视频预加载。之前几十轮只盯穿山甲/优量汇/快手，
+# 百度这边只拦了 mobads/cpro 那批老域名，tagtic.cn 完全漏掉——
+# 所以无论怎么清 intro001、怎么喂假数据，开屏永远有内容可播。
+# 用 REJECT-DICT 给 200+空对象，SDK 判「无策略」直接跳过；用 404 会被判网络故障去播缓存。
+DOMAIN-SUFFIX, tagtic.cn, REJECT-DICT
+
 # ============ 第一层：策略层本地返回（0ms，不出网）============
 # 用 REJECT-DICT 而不是脚本。Loon 的 http-request 脚本只能改请求头/Body，
 # 不能 $done({response}) 造响应（官方文档 http-request 段只列 $request 对象），写了也不执行。
