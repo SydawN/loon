@@ -45,8 +45,10 @@ DOMAIN-SUFFIX, gdfp.gifshow.com, REJECT
 # v2/ad/pre/video 是开屏视频预加载。之前几十轮只盯穿山甲/优量汇/快手，
 # 百度这边只拦了 mobads/cpro 那批老域名，tagtic.cn 完全漏掉——
 # 所以无论怎么清 intro001、怎么喂假数据，开屏永远有内容可播。
-# 用 REJECT-DICT 给 200+空对象，SDK 判「无策略」直接跳过；用 404 会被判网络故障去播缓存。
-DOMAIN-SUFFIX, tagtic.cn, REJECT-DICT
+# 注意：这里不能整域 REJECT。拦掉后 App 拿不到 ios-init 里的 splashMaximumWaitingTime，
+# 会用内置默认值继续等 3 秒，变成「没广告但白等」。必须放行 g1 交给脚本改写应答。
+DOMAIN, g1.tagtic.cn, DIRECT
+DOMAIN-SUFFIX, log3.tagtic.cn, REJECT-DICT
 
 # ============ 第一层：策略层本地返回（0ms，不出网）============
 # 用 REJECT-DICT 而不是脚本。Loon 的 http-request 脚本只能改请求头/Body，
@@ -134,6 +136,11 @@ http-response ^https://ngabbs\.com/nuke\.php script-path=https://raw.githubuserc
 # ---- adfree 字段伪装 ----
 http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
 
+# ---- 百度联盟 TagTic：改写策略应答（NGA 开屏的真实上游）----
+# 改应答而不是拦域名：拦了 App 会用默认 3 秒超时继续等，改应答才能真跳过
+# openscreen.result=false + splashMaximumWaitingTime=0 + aggregation.data=[]
+http-response ^https://g1\.tagtic\.cn/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/tagtic.js, requires-body=true, timeout=30, tag=TagTic策略改写
+
 # ---- 三联盟「喂假数据」----
 # 核心：无论原响应是 200/403/404，一律返回 200 + 标准「无填充」字段
 # 404 会被 SDK 判成网络错误而降级播缓存，这就是之前拦得越干净广告越顽固的原因
@@ -143,6 +150,6 @@ http-response ^https://mi\.gdt\.qq\.com/ script-path=https://raw.githubuserconte
 http-response ^https://open\.e\.kuaishou\.com/rest/e/v3/open/univ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=快手联盟无填充
 
 [MITM]
-hostname = ngabbs.com, api-access.pangolin-sdk-toutiao.com, is.snssdk.com, mi.gdt.qq.com, open.e.kuaishou.com
+hostname = ngabbs.com, api-access.pangolin-sdk-toutiao.com, is.snssdk.com, mi.gdt.qq.com, open.e.kuaishou.com, g1.tagtic.cn
 
 [End of file.]
