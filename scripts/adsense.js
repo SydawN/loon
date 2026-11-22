@@ -1,40 +1,23 @@
 /**
- * adsense.js — 广告联盟「喂假数据」脚本
+ * adsense.js — 广告联盟「喂假数据」脚本（强制 200 版）
  *
- * 思路来源：app2smile/rules 的 adsense.js（blockAds.plugin 内的联盟净化开关）
+ * 关键点：不能依赖原响应能 JSON.parse。
+ * 服务端/拦截层返回 404 或 HTML 时，SDK 会判定「拉取失败」→ 降级播本地缓存。
+ * 必须无条件返回 200 + 一份「服务端无广告填充」的应答，SDK 才会直接跳过。
  *
- * 核心区别：
- *   REJECT 域名 = SDK 认为网络出错 → 降级播本地缓存
- *   改响应为「无填充」= SDK 认为服务端没广告 → 直接不播
- *
- * 覆盖三个联盟：
- *   穿山甲  api-access.pangolin-sdk-toutiao.com / is.snssdk.com
- *   优量汇  mi.gdt.qq.com                       （实测走 POST，不区分 GET/POST）
- *   快手    open.e.kuaishou.com
+ *   穿山甲  status_code 20001 / reason 112
+ *   优量汇  ret 102006
+ *   快手    result 40003
  */
 
 const url = $request.url;
 
-if (!$response || !$response.body) {
-  $done({});
-}
-
-let body;
-try {
-  body = JSON.parse($response.body);
-} catch (e) {
-  $done({});
-}
-
-if (typeof body !== 'object' || body === null) {
-  $done({});
-}
-
-// 穿山甲：20001 = 无广告填充
-// 只认 get_ads / bidding 这类真正拉广告的路径，settings 之类的辅助接口不动
+// 穿山甲：只处理真正拉广告的路径，settings/mediation 这类辅助接口不动
 if (url.indexOf('pangolin-sdk-toutiao.com') !== -1 || url.indexOf('is.snssdk.com') !== -1) {
   if (url.indexOf('/api/ad/union/sdk') !== -1 || url.indexOf('get_ads') !== -1) {
     $done({
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         request_id: 'F5617E54-3FF4-4052-9B09-4227D09B5105',
         status_code: 20001,
@@ -46,21 +29,22 @@ if (url.indexOf('pangolin-sdk-toutiao.com') !== -1 || url.indexOf('is.snssdk.com
   $done({});
 }
 
-// 优量汇：102006 = 无广告返回
-// 实测 49/50 号包全部是 POST，所以这里不判断 method
+// 优量汇：无论原响应是什么（200/403/404），一律返回无广告
 if (url.indexOf('mi.gdt.qq.com') !== -1) {
-  if ('ret' in body) {
-    body.ret = 102006;
-  } else {
-    body.ret = 102006;
-  }
-  $done({ body: JSON.stringify(body) });
+  $done({
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ret: 102006, msg: 'no ad' })
+  });
 }
 
-// 快手联盟：40003 = 无广告返回
+// 快手联盟：同上
 if (url.indexOf('open.e.kuaishou.com') !== -1) {
-  body.result = 40003;
-  $done({ body: JSON.stringify(body) });
+  $done({
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ result: 40003, error_msg: 'no ad' })
+  });
 }
 
 $done({});
