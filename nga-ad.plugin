@@ -153,6 +153,7 @@ http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubus
 # ===== 广告联盟「喂假数据」=====
 # 思路：不拦域名，而是把 SDK 的拉广告应答改写成「无广告填充」
 # 这样 SDK 认为服务端明确没有广告，直接不播；而 REJECT 会让它以为网络出错、降级播本地缓存
+http-response ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/mediation script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲竞价无填充
 http-response ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲无填充
 http-response ^https://is\.snssdk\.com/api/ad/union/sdk script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲无填充
 http-response ^https://mi\.gdt\.qq\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=优量汇无填充
