@@ -1,13 +1,13 @@
-#!name=豆瓣去广告 v10
-#!desc=v10：素材域名从 REJECT-IMG 改成 REJECT 真断连。原因：REJECT-IMG 回 1×1 像素是"假成功"，优量汇 SDK 把假图当成下载完成，记进本地缓存并写进 splash_bid 的 sdk_list，于是每轮冷启动都在播预加载的旧创意，不联网也能出——102 号包里 gdt_mview.fcg 明明回 no ad，广告照样播就是这条。同时补上这轮抓包新发现的京东 ansdk 和穿山甲镜像域名。仍然零 MITM、零脚本。
+#!name=豆瓣去广告 v11
+#!desc=v11 找到了真正的洞：qzs.gdtimg.com。104 号包里这个域成功下载了 45KB 的 libpag.min.encrypt.js 和 816KB 的 libpag.encrypt.wasm——优量汇的 PAG 动画渲染内核，开屏素材就靠它渲染，而我们此前只封了 ugdtimg.com（图床），把主 CDN gdtimg.com 整条漏了。另外补 zijieapi.com（穿山甲的 get_domains 域名下发，正是它变出 -b/-toutiao1 那些镜像）。素材规则统一用 REJECT 真断连，不用 REJECT-IMG 假图。仍然零 MITM、零脚本。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
 #!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag = 去广告, 豆瓣
-#!date=2026-11-22 17:50:00
-#!version=10
+#!date=2026-11-22 18:10:00
+#!version=11
 
 [Rule]
 # ============ 豆瓣自有广告系统 Dale / Erebor / Amonsul ============
@@ -48,6 +48,9 @@ DOMAIN-SUFFIX, gdt.qq.com, REJECT
 DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
 DOMAIN-SUFFIX, ugdtimg.com, REJECT
 DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
+# v11 核心：优量汇真实 CDN 主域。104 号包实测它成功下发了 libpag 渲染内核(JS 45KB + WASM 816KB)，
+# 开屏动画素材就是从 qzs.gdtimg.com 拿的。只封 ugdtimg.com 等于只关了图床，没关正门。
+DOMAIN-SUFFIX, gdtimg.com, REJECT
 
 # ============ 穿山甲 / 巨量（豆瓣 5003518 + NGA 5000546 一起封）============
 DOMAIN-SUFFIX, pangle.io, REJECT
@@ -56,6 +59,8 @@ DOMAIN-SUFFIX, oceanengine.com, REJECT
 DOMAIN-SUFFIX, pangolin-sdk-toutiao.com, REJECT
 DOMAIN-SUFFIX, pangolin-sdk-toutiao1.com, REJECT
 DOMAIN-SUFFIX, pangolin-sdk-toutiao-b.com, REJECT
+# 穿山甲的 get_domains 域名下发接口，就是它把 -b / -toutiao1 这些镜像变出来的
+DOMAIN-SUFFIX, zijieapi.com, REJECT
 DOMAIN-SUFFIX, pstatp.com, REJECT
 DOMAIN-SUFFIX, douyinpic.com, REJECT
 DOMAIN-SUFFIX, douyinvod.com, REJECT
