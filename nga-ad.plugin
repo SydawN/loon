@@ -15,13 +15,15 @@ DOMAIN, open.e.kuaishou.com, DIRECT
 DOMAIN, is.snssdk.com, DIRECT
 
 # 优酷推广图床（实测 pic7.iqiyipic.com 85043 字节 JPEG，优酷剧集推广）
-DOMAIN-SUFFIX, iqiyipic.com, REJECT
+DOMAIN-SUFFIX, iqiyipic.com, REJECT-IMG
 
 # 一号联盟 / 360（1rtb）：实测 sdk.1rtb.net/sdk/req_ad 返回 9492 字节真广告
-DOMAIN, sdk.1rtb.net, REJECT
-DOMAIN-SUFFIX, 1rtb.net, REJECT
-URL-REGEX, ^http://sdk\.1rtb\.net, REJECT
-URL-REGEX, ^https://sdk\.1rtb\.net, REJECT
+DOMAIN, sdk.1rtb.net, REJECT-DICT
+DOMAIN-SUFFIX, 1rtb.net, REJECT-DICT
+URL-REGEX, ^http://sdk\.1rtb\.net, REJECT-DICT
+URL-REGEX, ^https://sdk\.1rtb\.net, REJECT-DICT
+# 1rtb SDK 自建 DoH：实测走 119.29.29.98/d?dn=... 解析 sdk.1rtb.net 后直连 IP，域名规则因此失效。断掉这个 IP 它就解析不出地址。若发现其他 App 网络异常，注释掉这行。
+IP-CIDR, 119.29.29.98/32, REJECT
 
 # 多多买菜（拼多多系）广告点击上报，实测开屏/信息流会走这条
 DOMAIN-SUFFIX, ad.ddxq.mobi, REJECT
@@ -121,8 +123,8 @@ DOMAIN-SUFFIX, gdtimg.com, REJECT
 # ---- 2026-11-22 12:42 三次抓包：穿山甲视频素材 + 字节深链 SDK ----
 
 # 穿山甲图片 / 视频素材 CDN（实测 p9-sign.douyinpic.com 返回 MP4 视频流 Lavc58）
-DOMAIN-SUFFIX, douyinpic.com, REJECT
-DOMAIN-SUFFIX, byteimg.com, REJECT
+DOMAIN-SUFFIX, douyinpic.com, REJECT-IMG
+DOMAIN-SUFFIX, byteimg.com, REJECT-IMG
 DOMAIN-SUFFIX, ibytedtos.com, REJECT
 
 # 字节 / 穿山甲 deeplink SDK（UA=oime_iOS 1.6.6 Cronet, app_name=oime, iid=1105421858044119）
@@ -131,10 +133,10 @@ DOMAIN-SUFFIX, ugsdk.cn, REJECT
 DOMAIN-SUFFIX, zlinkurl.cn, REJECT
 
 # ---- 京东京准通广告素材 CDN（实测 img1.360buyimg.com/pop/jfs/*.jpg）---
-DOMAIN-SUFFIX, 360buyimg.com, REJECT
+DOMAIN-SUFFIX, 360buyimg.com, REJECT-IMG
 
 # ---- 淘宝闪购 / 饿了么 开屏素材库（实测 1080x1920 jpeg，路径 ad-performance-advertiser）---
-DOMAIN-SUFFIX, qhzl.com.cn, REJECT
+DOMAIN-SUFFIX, qhzl.com.cn, REJECT-IMG
 
 # ---- 优量汇 TMF 归因（注意是 tdid 不是 tid，之前漏了一个 d）---
 DOMAIN, tdid.m.qq.com, REJECT
