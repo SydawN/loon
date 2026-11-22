@@ -1,79 +1,90 @@
-#!name=豆瓣去广告 v9
-#!desc=v9 零解密版 + 微博整域：整个插件不含任何 MITM、不含任何脚本，只在策略层拦广告域名和广告接口。豆瓣的登录、账号、内容链路一行都不碰——关掉 Loon 才能登录的那类问题，根源都是 MITM 解密，这一版把它彻底去掉了。v7 补上微博 SDK 的开屏链路（截图确认的最后一条没覆盖的源）。
+#!name=豆瓣去广告 v10
+#!desc=v10：素材域名从 REJECT-IMG 改成 REJECT 真断连。原因：REJECT-IMG 回 1×1 像素是"假成功"，优量汇 SDK 把假图当成下载完成，记进本地缓存并写进 splash_bid 的 sdk_list，于是每轮冷启动都在播预加载的旧创意，不联网也能出——102 号包里 gdt_mview.fcg 明明回 no ad，广告照样播就是这条。同时补上这轮抓包新发现的京东 ansdk 和穿山甲镜像域名。仍然零 MITM、零脚本。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
 #!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag = 去广告, 豆瓣
-#!date=2026-11-22 20:05:00
-#!version=9
+#!date=2026-11-22 17:50:00
+#!version=10
 
 [Rule]
 # ============ 豆瓣自有广告系统 Dale / Erebor / Amonsul ============
-# erebor 只做广告竞价，拦掉安全
 DOMAIN, erebor.douban.com, REJECT
 
-# 开屏四件套（splash_bid / preload / show / statistics）
-# 策略层直接回 200 + {}，不需要解密，所以 api.douban.com 完全不进 MITM
+# 开屏四件套（splash_bid / preload / show / statistics），策略层直接回 200 + {}，无需解密
 URL-REGEX, ^https://api\.douban\.com/v2/app_ads/, REJECT-DICT
 
 # 广告图（首页横幅、开屏静态图都在这个路径下）
-# 用 REJECT-IMG 回 1×1 像素而不是 404，App 当正常的空图，广告位空白但不报错
-URL-REGEX, ^https://img\d+\.doubanio\.com/view/dale-online/, REJECT-IMG
+# v10 起改 REJECT：REJECT-IMG 返回的 1×1 像素会让 App 判成"图片有效"，反而把广告位撑住
+URL-REGEX, ^https://img\d+\.doubanio\.com/view/dale-online/, REJECT
 
-# 首页横幅
+# 首页横幅 / 信息流广告 / 小组页广告
 URL-REGEX, ^https://frodo\.douban\.com/api/v2/home_banner, REJECT-DICT
-# 信息流里插的那条广告
 URL-REGEX, ^https://frodo\.douban\.com/api/v2/erebor/feed_ad, REJECT-DICT
-# 小组页广告位
 URL-REGEX, ^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad, REJECT-DICT
 
-# home_ads 故意不动。它在 14 号包里原样就是 {"cache_duration":7200}，本来就没广告；
-# 上一版硬改成空对象丢了 cache_duration，App 判非法缓存指令，整个首页块不渲染。
+# home_ads 故意不动，原生就是 {"cache_duration":7200}
 
-# ============ 微博 SDK 开屏广告 ============
-# 开屏截图确认来源：左上角微博 logo + 「跳过 4」+「扭动手机 跳转详情页面或第三方应用」+ 右下角广告角标。
-# 这是微博 SDK 自己的开屏位，跟豆瓣 dale、优量汇、穿山甲都不是同一条链，之前几版全漏了。
-# 整域封死，不再只拦 getaid 一条。
-# 之前只拦 getaid.json 没效果，而 94 号包里又找不到任何微博请求，
-# 说明这条链要么走别的接口，要么根本没进抓包。与其猜接口，不如把微博整域切掉：
-# api.weibo.com（广告位与开放接口）、sinaimg.cn（微博创意图床）、sax(s).sina.com.cn（新浪广告服务）。
-# 代价：豆瓣里如果用到微博授权登录/分享会失效，这个账号体系你用不到，可以接受。
+# ============ 微博 / 新浪系 ============
 DOMAIN, api.weibo.com, REJECT
 DOMAIN-SUFFIX, weibo.com, REJECT
-DOMAIN-SUFFIX, sinaimg.cn, REJECT-IMG
+DOMAIN-SUFFIX, weibo.cn, REJECT
+DOMAIN-SUFFIX, wbimg.cn, REJECT
+DOMAIN-SUFFIX, weibocdn.com, REJECT
+# v10 起 sinaimg 也改 REJECT：假图会被 SDK 当成下载成功并缓存
+DOMAIN-SUFFIX, sinaimg.cn, REJECT
 DOMAIN-SUFFIX, sax.sina.com.cn, REJECT
 DOMAIN-SUFFIX, saxs.sina.com.cn, REJECT
+DOMAIN-SUFFIX, sinaads.sina.com.cn, REJECT
+DOMAIN-SUFFIX, beacon.sina.com.cn, REJECT
 
-# ============ 广告联盟入口 ============
-# 穿山甲（豆瓣 site_id 5003518）
+# ============ 优量汇 / 腾讯广告（豆瓣 app id 1106295950）============
+# sdk_list 里的两条常驻缓存创意：红果短剧，8066335912468747 / 7161778301057006
+# 素材分别在 adsmind.ugdtimg.com（视频）和 pgdt.ugdtimg.com（图）
+# v10 关键改动：REJECT-IMG → REJECT。假成功是缓存清不掉的根本原因。
+DOMAIN-SUFFIX, gdt.qq.com, REJECT
+DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
+DOMAIN-SUFFIX, ugdtimg.com, REJECT
+DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
+
+# ============ 穿山甲 / 巨量（豆瓣 5003518 + NGA 5000546 一起封）============
 DOMAIN-SUFFIX, pangle.io, REJECT
 DOMAIN-SUFFIX, gromore.cn, REJECT
 DOMAIN-SUFFIX, oceanengine.com, REJECT
+DOMAIN-SUFFIX, pangolin-sdk-toutiao.com, REJECT
+DOMAIN-SUFFIX, pangolin-sdk-toutiao1.com, REJECT
+DOMAIN-SUFFIX, pangolin-sdk-toutiao-b.com, REJECT
+DOMAIN-SUFFIX, pstatp.com, REJECT
+DOMAIN-SUFFIX, douyinpic.com, REJECT
+DOMAIN-SUFFIX, douyinvod.com, REJECT
+DOMAIN, mssdk.volces.com, REJECT
 
-# 优量汇 / 腾讯广告（豆瓣 app id 1106295950）
-DOMAIN-SUFFIX, gdt.qq.com, REJECT
-DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT-IMG
-# 素材在 ugdtimg 下：pgdt.（静态图）、adsmind.（视频），视频 302 落到 *.rdt.tfogc.com:49156
-DOMAIN-SUFFIX, ugdtimg.com, REJECT-IMG
-DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
-
-# 快手联盟
-DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
-DOMAIN-SUFFIX, kuaishouzt.com, REJECT
-
-# 百度联盟
-DOMAIN-SUFFIX, mobads.baidu.com, REJECT
-DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
-DOMAIN-SUFFIX, cpro.baidu.com, REJECT
-
-# 京东京准通
+# ============ 京东广告 SDK（ansdk / 京准通）============
+# 102 号包实测：dsp-x.jd.com/adx/sdk 与 janapi.jd.com/ansdk/v1/initData 都返回了真实加密体
+# 说明京东广告 SDK 在豆瓣里是活的，之前只拦了 jzt / orbit，这条链路整条没覆盖
+DOMAIN, dsp-x.jd.com, REJECT
+DOMAIN, janapi.jd.com, REJECT
+DOMAIN, xlog.jd.com, REJECT
+DOMAIN, knicks.jd.com, REJECT
+DOMAIN, mapi.m.jd.com, REJECT
 DOMAIN-SUFFIX, jzt.jd.com, REJECT
 DOMAIN-SUFFIX, orbit.jd.com, REJECT
 
-# 阿里妈妈
+# ============ 淘宝 / 阿里 ============
+DOMAIN, baichuan-sdk.taobao.com, REJECT
+DOMAIN, baichuan-sdk.alicdn.com, REJECT
 DOMAIN-SUFFIX, tanx.com, REJECT
 DOMAIN-SUFFIX, alimama.com, REJECT
+
+# ============ 快手联盟 ============
+DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
+DOMAIN-SUFFIX, kuaishouzt.com, REJECT
+
+# ============ 百度联盟 ============
+DOMAIN-SUFFIX, mobads.baidu.com, REJECT
+DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
+DOMAIN-SUFFIX, cpro.baidu.com, REJECT
 
 [End of file.]
