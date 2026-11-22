@@ -1,12 +1,13 @@
 #!name=豆瓣去广告（安全版）
-#!desc=只做事确定性高的拦截：广告投放域名 + 广告图片路径改 1×1 像素，不改任何接口响应体。上一版把 home_ads / home_banner / erebor_ads / group 广告位统统替换成空对象 {}，豆瓣 App 拿不到 code 与 result 会判响应异常，导致正常内容打不开——这是本次返工的主因。本版先保证可用，按抓包逐步精修。
+#!desc=v3 降风险版：MITM 只留 frodo 一个域名，脚本只改 4 个广告接口，登录/账号链路完全不碰。开屏四件套走策略层 REJECT-DICT 回 {}，优量汇素材 CDN 断供。看到这行文字说明你装的是 v3。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
 #!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag = 去广告, 豆瓣
-#!date=2026-11-22 16:20:00
+#!date=2026-11-22 17:10:00
+#!version=3
 
 [Rule]
 # ============ 豆瓣自有广告系统 Dale ============
