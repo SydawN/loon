@@ -18,7 +18,10 @@ DOMAIN, is.snssdk.com, DIRECT
 DOMAIN-SUFFIX, iqiyipic.com, REJECT
 
 # 一号联盟 / 360（1rtb）：实测 sdk.1rtb.net/sdk/req_ad 返回 9492 字节真广告
+DOMAIN, sdk.1rtb.net, REJECT
 DOMAIN-SUFFIX, 1rtb.net, REJECT
+URL-REGEX, ^http://sdk\.1rtb\.net, REJECT
+URL-REGEX, ^https://sdk\.1rtb\.net, REJECT
 
 # 多多买菜（拼多多系）广告点击上报，实测开屏/信息流会走这条
 DOMAIN-SUFFIX, ad.ddxq.mobi, REJECT
