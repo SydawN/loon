@@ -1,13 +1,13 @@
-#!name=豆瓣去广告 v7
-#!desc=v7 零解密版 + 微博开屏：整个插件不含任何 MITM、不含任何脚本，只在策略层拦广告域名和广告接口。豆瓣的登录、账号、内容链路一行都不碰——关掉 Loon 才能登录的那类问题，根源都是 MITM 解密，这一版把它彻底去掉了。v7 补上微博 SDK 的开屏链路（截图确认的最后一条没覆盖的源）。
+#!name=豆瓣去广告 v8
+#!desc=v8 零解密版 + 微博开屏：整个插件不含任何 MITM、不含任何脚本，只在策略层拦广告域名和广告接口。豆瓣的登录、账号、内容链路一行都不碰——关掉 Loon 才能登录的那类问题，根源都是 MITM 解密，这一版把它彻底去掉了。v7 补上微博 SDK 的开屏链路（截图确认的最后一条没覆盖的源）。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
 #!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag = 去广告, 豆瓣
-#!date=2026-11-22 19:10:00
-#!version=7
+#!date=2026-11-22 19:40:00
+#!version=8
 
 [Rule]
 # ============ 豆瓣自有广告系统 Dale / Erebor / Amonsul ============
@@ -35,8 +35,12 @@ URL-REGEX, ^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad, REJECT-DICT
 # ============ 微博 SDK 开屏广告 ============
 # 开屏截图确认来源：左上角微博 logo + 「跳过 4」+「扭动手机 跳转详情页面或第三方应用」+ 右下角广告角标。
 # 这是微博 SDK 自己的开屏位，跟豆瓣 dale、优量汇、穿山甲都不是同一条链，之前几版全漏了。
-# getaid.json 就是微博 SDK 取广告 ID 的入口，只拦这一条 URL，微博登录授权不受影响。
-URL-REGEX, ^https://api\.weibo\.com/oauth2/getaid\.json, REJECT
+# getaid.json 是微博 SDK 取广告 ID 的入口。71 号包实测它正常的「无广告」应答是
+#   {"aid":"000000-0000-00000-0000-000000-000000"}   （46 字节，全 0 占位符）
+# 说明 SDK 是靠 aid 字段判定的。这里改回 200 + {}（缺 aid）而不是 404：
+# 拿到一个 404 传输错误，SDK 会退到本地缓存创意继续播；拿到合法 JSON 但没有 aid，
+# 它更可能直接判定「无广告」跳过。微博登录授权走 oauth2 其他路径，不受影响。
+URL-REGEX, ^https://api\.weibo\.com/oauth2/getaid\.json, REJECT-DICT
 DOMAIN-SUFFIX, ads.sinaimg.cn, REJECT-IMG
 DOMAIN-SUFFIX, sax.sina.com.cn, REJECT
 DOMAIN-SUFFIX, saxs.sina.com.cn, REJECT
