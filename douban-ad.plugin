@@ -1,4 +1,4 @@
-#!name=豆瓣去广告
+#!name=豆瓣去广告 v18
 #!desc=参照 mist-whisper BlockAds 与 fmz200 blockAds 的写法重写：域名走 [Rule] 整域拒绝，接口与素材走 [Rewrite] 的 reject-dict / reject，不用命名式脚本；仅在 feature_switch 上保留一个旧语法 http-response 脚本清空 splash_sdk_info。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon

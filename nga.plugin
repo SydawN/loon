@@ -1,4 +1,4 @@
-#!name=NGA 去广告（精简加速版）
+#!name=NGA 去广告 v2（精简加速版）
 #!desc=只保留抓包实测过的必要规则。启动加速改走策略层 REJECT-DICT（本地返回 200+空对象，完全不出网，0ms）——这是 Loon 唯一能绕过网络的手段；http-request 脚本只能修改请求、不能构造响应，之前那套写法在 Loon 里不执行，已移除。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
