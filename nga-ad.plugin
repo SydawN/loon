@@ -10,6 +10,10 @@ homepage=https://github.com/SydawN/loon
 date=2026-11-22
 
 [Rule]
+# ---- 优量汇素材 / 联盟角标（实测开屏会加载 ylg_logo.png）----
+# 作用有限：只能让"G 广告"角标裂图，去不掉已缓存的广告画面
+DOMAIN,sigcdn.oss-cn-beijing.aliyuncs.com,REJECT
+
 # ---- 百度联盟点击跳转（实测为 http 明文，无需 MITM）----
 URL-REGEX,^http://m\.baidu\.com/baidu\.php,REJECT
 DOMAIN-SUFFIX,mobads.baidu.com,REJECT
