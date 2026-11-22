@@ -1,59 +1,84 @@
 // nga-purge.js — 清空 NGA 的广告位配置与首页运营位
 // https://github.com/SydawN/loon
 //
-// 核心：nuke.php?__lib=app_inter&__act=static_file_list 的响应里，
-//   result[1].EXTRA_ADS_RULES  服务端下发的广告位清单（INTRO_INTVAL 开屏 / FORUM_INTVAL 信息流）
-//   result[2].intro001         开屏广告的直接配置（type=com.bytedance 穿山甲 / type=com.dn NGA自有）
-// 把这两处清空，App 不会再去初始化广告 SDK 拉素材，开屏与信息流广告位一起消失。
+// 目标接口：nuke.php?__lib=app_inter&__act=static_file_list
+//   result[1].EXTRA_ADS_RULES  服务端下发的广告位规则（INTRO_INTVAL 开屏间隔 / FORUM_INTVAL 信息流）
+//   result[2].intro001         开屏广告的直接配置
 //
-// 附带：清空首页顶部横幅(banner_list)、推荐主题流(recmd_topic)、活动入口(get_event_app)。
+// 关键结构（33 号包原始值）：
+//   intro001: [
+//     { adid:'intro001', date:[{start:1735693201,end:1735833599},{start:1736006401,end:1767283199}],
+//       rate:100, type:'com.bytedance', opt:0 },
+//     { adid:'intro001', date:[{start:1735693201,end:1767283199}],
+//       rate:100, type:'com.dn', resurl:'https://img.nga.178.com/...', targeturl:'...' }
+//   ]
+//
+// 踩过的三个坑（按顺序）：
+//   1. 把 intro001 清成 []      → App 判「无配置」，回退内置默认开屏（穿山甲），广告 3/3 恶化
+//   2. 把 EXTRA_ADS_RULES 清成 [] → 同上，回退默认
+//   3. 给一条没有 date 的假配置  → App 判「无时间限制」，照常展示、照常倒计时
+//                              广告画面没了，但白等 4 秒（72 号包实测：827ms 业务请求全部完成，
+//                              之后 3973ms 一片空白，就是开屏在那空转）
+//
+// 正确解：date 过期(start:0,end:0) + rate:0。App 判「当前时间不在窗口内」且「展示概率为零」，
+// 双保险直接跳过开屏流程，不加载素材、不启动倒计时。
 
-const url = $request.url;
-const EMPTY = '{"code":0,"msg":"操作成功","result":[]}';
-
-if (/__act=static_file_list/i.test(url)) {
+if (/__act=static_file_list/i.test($request.url)) {
   try {
     const obj = JSON.parse($response.body);
+
     if (obj && Array.isArray(obj.result)) {
       obj.result.forEach(function (item) {
         if (!item || typeof item !== 'object') return;
+
+        // ---- 广告位规则：改成过去时间窗 ----
+        // 保留 id 与结构，App 才会正常解析后判定「未生效」，而不是判「配置缺失」
         if (Array.isArray(item.EXTRA_ADS_RULES)) {
-          // 原始结构（13~33 号包一致）：
-          //   [{id:'INTRO_INTVAL', client:'IOS', start:1764345600, end:2076633801, adsid:'98231', value:'180'},
-          //    {id:'FORUM_INTVAL', client:'IOS,>=10.1.36,ANDROID', ... adsid:'98336,...', value:'10,10'},
-          //    {id:'TOPIC_REWARDADFREE', client:'IOS,ANDROID', ... img:'...appadfreeww.webp', value:'20,30'}]
-          //
-          // 之前清成 [] 是错的：App 视为「无配置」，回退内置默认开屏，广告照样播。
-          // 正确做法是保留结构、把生效窗口(start/end)改成过去时间，
-          // App 判断「当前时间不在窗口内」→ 直连跳过开屏，也不会去请求穿山甲。
           item.EXTRA_ADS_RULES = [
             { id: 'INTRO_INTVAL', client: 'IOS', start: 0, end: 0, adsid: '0', value: '0' },
             { id: 'FORUM_INTVAL', client: 'IOS,>=10.1.36,ANDROID', start: 0, end: 0, adsid: '', value: '0' },
             { id: 'TOPIC_REWARDADFREE', client: 'IOS,ANDROID', start: 0, end: 0, img: '', value: '0' }
           ];
         }
+
+        // ---- 开屏配置：date 过期 + rate 归零 ----
+        // 必须带 adid/date/rate/type 四个字段，App 才会走完整解析流程并判定失效。
+        // 少任何一个都可能被当成「配置异常」而回退默认。
         if (Array.isArray(item.intro001)) {
-          // 服务端实测返回 intro001: []
-          // 空数组会让 App 回退到内置默认开屏（穿山甲），这就是开屏广告清不掉的原因
-          // 所以给一个「假配置」：type=com.dn 是 App 识别的类型，resurl 指向一张 427 字节的勋章图
-          // App 会正常走开屏流程、加载这张小图，放大后几乎空白，但不再是广告
-          item.intro001 = [{
-            type: 'com.dn',
-            resurl: 'https://img4.nga.cn/ngabbs/medal/260.gif',
-            targeturl: ''
-          }];
+          item.intro001 = [
+            {
+              adid: 'intro001',
+              date: [{ start: 0, end: 0 }],
+              rate: 0,
+              type: 'com.dn',
+              resurl: 'https://img4.nga.cn/ngabbs/medal/260.gif',
+              targeturl: ''
+            },
+            {
+              adid: 'intro001',
+              date: [{ start: 0, end: 0 }],
+              rate: 0,
+              type: 'com.bytedance',
+              opt: 0
+            }
+          ];
         }
       });
     }
+
     $done({ body: JSON.stringify(obj) });
   } catch (e) {
+    // 解析失败就原样放行。不要返回空 body，否则 App 判网络错误
     $done({});
   }
-} else if (/__act=banner_list/i.test(url)) {
-  $done({ body: EMPTY });
-} else if (/__act=recmd_topic/i.test(url)) {
-  $done({ body: EMPTY });
-} else if (/__act=get_event_app/i.test(url)) {
+} else if (/__act=banner_list/i.test($request.url)) {
+  // 首页顶部横幅位
+  $done({ body: '{"code":0,"msg":"操作成功","result":[]}' });
+} else if (/__act=recmd_topic/i.test($request.url)) {
+  // 首页推荐主题流
+  $done({ body: '{"code":0,"msg":"操作成功","result":[]}' });
+} else if (/__act=get_event_app/i.test($request.url)) {
+  // 活动入口
   $done({ body: '{"code":0,"msg":"","result":[]}' });
 } else {
   $done({});

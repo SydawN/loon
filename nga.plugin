@@ -104,6 +104,6 @@ http-response ^https://mi\.gdt\.qq\.com/ script-path=https://raw.githubuserconte
 http-response ^https://open\.e\.kuaishou\.com/rest/e/v3/open/univ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=快手联盟无填充
 
 [MITM]
-hostname = ngabbs.com, img.nga.cn, img4.nga.cn, api-access.pangolin-sdk-toutiao.com, is.snssdk.com, mi.gdt.qq.com, open.e.kuaishou.com
+hostname = ngabbs.com, api-access.pangolin-sdk-toutiao.com, is.snssdk.com, mi.gdt.qq.com, open.e.kuaishou.com
 
 [End of file.]
