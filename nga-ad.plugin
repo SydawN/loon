@@ -50,7 +50,7 @@ DOMAIN-SUFFIX, microengine.cn, REJECT
 # 亿典广告平台（实测开屏曝光上报 api.ocpx.ydmob.com）
 DOMAIN-SUFFIX, ydmob.com, REJECT
 
-# 快手联盟素材分片（a.yximgs.com 同时承载帖子外链图，只挡广告分片）
+# 快手联盟素材（实测 p2/p4.a.yximgs.com/upic/ 下 360x640 广告图，与帖子图同域名同路径，只能整域拦）
 DOMAIN-SUFFIX, a.yximgs.com, REJECT
 DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
 DOMAIN-SUFFIX, kuaishouzt.com, REJECT
