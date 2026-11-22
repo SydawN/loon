@@ -122,6 +122,9 @@ DOMAIN-SUFFIX, adstarcharm.com, REJECT
 
 # 微博广告图床
 DOMAIN-SUFFIX, ads.sinaimg.cn, REJECT
+# 微博 SDK 设备指纹上报（NGA 集成微博 SDK，启动时必调，148ms）
+# 只拦 getaid 这一条，登录接口不动，不影响微博登录
+URL-REGEX, ^https://api\.weibo\.com/oauth2/getaid\.json, REJECT
 
 # 字节 deeplink SDK（settings 含 deeplink_domains、pasteboard 配置）
 DOMAIN-SUFFIX, ugsdk.cn, REJECT
