@@ -94,6 +94,18 @@ DOMAIN-SUFFIX, ads.sinaimg.cn, REJECT
 # 优量汇素材 CDN 补漏
 DOMAIN-SUFFIX, gdtimg.com, REJECT
 
+# ---- 2026-11-22 12:42 三次抓包：穿山甲视频素材 + 字节深链 SDK ----
+
+# 穿山甲图片 / 视频素材 CDN（实测 p9-sign.douyinpic.com 返回 MP4 视频流 Lavc58）
+DOMAIN-SUFFIX, douyinpic.com, REJECT
+DOMAIN-SUFFIX, byteimg.com, REJECT
+DOMAIN-SUFFIX, ibytedtos.com, REJECT
+
+# 字节 / 穿山甲 deeplink SDK（UA=oime_iOS 1.6.6 Cronet, app_name=oime, iid=1105421858044119）
+# 返回 settings 含 deeplink_domains、deeplink_timeout、pasteboard 配置，纯广告归因与跳转组件
+DOMAIN-SUFFIX, ugsdk.cn, REJECT
+DOMAIN-SUFFIX, zlinkurl.cn, REJECT
+
 [Script]
 # 把 user&__act=detail 响应里的 adfree 改成 1
 http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
