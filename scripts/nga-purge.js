@@ -17,7 +17,21 @@ if (/__act=static_file_list/i.test(url)) {
     if (obj && Array.isArray(obj.result)) {
       obj.result.forEach(function (item) {
         if (!item || typeof item !== 'object') return;
-        if (Array.isArray(item.EXTRA_ADS_RULES)) item.EXTRA_ADS_RULES = [];
+        if (Array.isArray(item.EXTRA_ADS_RULES)) {
+          // 原始结构（13~33 号包一致）：
+          //   [{id:'INTRO_INTVAL', client:'IOS', start:1764345600, end:2076633801, adsid:'98231', value:'180'},
+          //    {id:'FORUM_INTVAL', client:'IOS,>=10.1.36,ANDROID', ... adsid:'98336,...', value:'10,10'},
+          //    {id:'TOPIC_REWARDADFREE', client:'IOS,ANDROID', ... img:'...appadfreeww.webp', value:'20,30'}]
+          //
+          // 之前清成 [] 是错的：App 视为「无配置」，回退内置默认开屏，广告照样播。
+          // 正确做法是保留结构、把生效窗口(start/end)改成过去时间，
+          // App 判断「当前时间不在窗口内」→ 直连跳过开屏，也不会去请求穿山甲。
+          item.EXTRA_ADS_RULES = [
+            { id: 'INTRO_INTVAL', client: 'IOS', start: 0, end: 0, adsid: '0', value: '0' },
+            { id: 'FORUM_INTVAL', client: 'IOS,>=10.1.36,ANDROID', start: 0, end: 0, adsid: '', value: '0' },
+            { id: 'TOPIC_REWARDADFREE', client: 'IOS,ANDROID', start: 0, end: 0, img: '', value: '0' }
+          ];
+        }
         if (Array.isArray(item.intro001)) {
           // 服务端实测返回 intro001: []
           // 空数组会让 App 回退到内置默认开屏（穿山甲），这就是开屏广告清不掉的原因
