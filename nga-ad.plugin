@@ -118,6 +118,9 @@ DOMAIN-SUFFIX, tdid.m.qq.com, REJECT
 # 腾讯广告管理系统 ams-web（WebView 内加载的 page-performance.js）
 DOMAIN-SUFFIX, i.gtimg.cn, REJECT
 
+# ---- 穿山甲曝光上报 tr.byteurl.cn（实测 漫剧单本 项目，ad_platform=toutiao, csite=33013）----
+DOMAIN-SUFFIX, byteurl.cn, REJECT
+
 [Script]
 # 把 user&__act=detail 响应里的 adfree 改成 1
 http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
