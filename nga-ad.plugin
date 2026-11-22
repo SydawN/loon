@@ -44,6 +44,12 @@ DOMAIN-SUFFIX,pgdt.gtimg.cn,REJECT
 DOMAIN-SUFFIX,adsmogo.com,REJECT
 DOMAIN,tid.m.qq.com,REJECT
 
+# ---- mobrtb（RTB 广告平台，实测开屏素材 cdn.mobrtb.com/whale/static/*.jpeg，720x1280）----
+DOMAIN-SUFFIX,mobrtb.com,REJECT
+# ---- 同链路竞价与追踪（本次同批实测）----
+DOMAIN-SUFFIX,52qumao.com,REJECT
+DOMAIN-SUFFIX,microengine.cn,REJECT
+
 # ---- 亿典广告平台 ydmob（北京亿典科技，实测开屏曝光上报走 api.ocpx.ydmob.com）----
 DOMAIN-SUFFIX,ydmob.com,REJECT
 
