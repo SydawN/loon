@@ -1,4 +1,4 @@
-#!name=豆瓣去广告（安全版）
+#!name=豆瓣去广告 v5
 #!desc=v5 掐SDK版：MITM 只留 frodo 一个域名，脚本只改 4 个广告接口，登录/账号链路完全不碰。开屏四件套走策略层 REJECT-DICT 回 {}，并 REJECT 优量汇 SDK 入口；本插件需排在 NGA 插件之上。看到这行文字说明你装的是 v5。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
