@@ -4,7 +4,7 @@
 name=豆瓣去广告
 desc=移除豆瓣 App 开屏、首页横幅与信息流广告；拦截穿山甲、优量汇、快手联盟、京准通、阿里 adash 等广告 SDK 与埋点域名。
 author=SydawN
-icon=https://img9.doubanio.com/favicon.ico
+icon=https://www.douban.com/favicon.ico
 apiVersion=1.0
 homepage=https://github.com/SydawN/loon
 date=2026-11-22
