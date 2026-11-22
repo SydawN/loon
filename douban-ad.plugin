@@ -1,13 +1,20 @@
-#!name=豆瓣去广告 v11
-#!desc=v11 找到了真正的洞：qzs.gdtimg.com。104 号包里这个域成功下载了 45KB 的 libpag.min.encrypt.js 和 816KB 的 libpag.encrypt.wasm——优量汇的 PAG 动画渲染内核，开屏素材就靠它渲染，而我们此前只封了 ugdtimg.com（图床），把主 CDN gdtimg.com 整条漏了。另外补 zijieapi.com（穿山甲的 get_domains 域名下发，正是它变出 -b/-toutiao1 那些镜像）。素材规则统一用 REJECT 真断连，不用 REJECT-IMG 假图。仍然零 MITM、零脚本。
+#!name=豆瓣去广告 v12
+#!desc=v12 终于找到开屏广告的老家：frodo.douban.com/api/v2/feature_switch。106 号包实测这个 46KB 配置接口的响应里直接带着 splash_sdk_info，一条京准通开屏（jztSplashSDK|147296|2033281326|267175，duration=5000，正好对上截图里的"跳过 4"）。也就是说开屏根本不走 splash_bid，配置接口每次冷启动把广告塞进来，所以 bid 回 {} 没用、删 App 没用、断网也能播（配置是磁盘缓存的）。本版用一个只改这一个字段的脚本把它清成空数组。注意：这是全插件唯一需要 MITM(仅 frodo.douban.com) 的一版，脚本只动 feature_switch，其余请求原样放行；万一出现登录或内容异常，把 [MITM] 段注释掉即可回到 v11 的纯策略模式。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
 #!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag = 去广告, 豆瓣
-#!date=2026-11-22 18:10:00
-#!version=11
+#!date=2026-11-22 18:25:00
+#!version=12
+
+[Script]
+# 清空 feature_switch 里的开屏广告配置（只改 splash_sdk_info 一个字段）
+douban_splash_config = type=http-response,pattern=^https://frodo\.douban\.com/api/v2/feature_switch,requires-body=1,max-size=131072,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-feature.js
+
+[MITM]
+hostname = frodo.douban.com
 
 [Rule]
 # ============ 豆瓣自有广告系统 Dale / Erebor / Amonsul ============
