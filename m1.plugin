@@ -1,8 +1,8 @@
-#!name=M-3
+#!name=M-4
 #!desc=Personal ruleset
 #!author=SydawN
-#!version=3
-#!date=2026-11-22 19:45:00
+#!version=4
+#!date=2026-11-22 20:05:00
 
 [Rule]
 URL-REGEX, ^https?://img4\.nga\.178\.com/common_res/js_domainConf\.js, REJECT
@@ -112,6 +112,7 @@ DOMAIN, gungnir.xiaojukeji.com, REJECT
 
 [Script]
 http-response ^https://frodo\.douban\.com/api/v2/feature_switch script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/s1.js, requires-body=true, timeout=30
+http-response ^https://amonsul\.douban\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/s2.js, requires-body=true, timeout=30
 http-response ^https://ngabbs\.com/nuke\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-purge.js, requires-body=true, timeout=60
 http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30
 http-response ^https://g1\.tagtic\.cn/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/tagtic.js, requires-body=true, timeout=30
@@ -121,4 +122,4 @@ http-response ^https://mi\.gdt\.qq\.com/ script-path=https://raw.githubuserconte
 http-response ^https://open\.e\.kuaishou\.com/rest/e/v3/open/univ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60
 
 [MITM]
-hostname = ngabbs.com, api-access.pangolin-sdk-toutiao.com, is.snssdk.com, mi.gdt.qq.com, open.e.kuaishou.com, g1.tagtic.cn, frodo.douban.com
+hostname = ngabbs.com, api-access.pangolin-sdk-toutiao.com, is.snssdk.com, mi.gdt.qq.com, open.e.kuaishou.com, g1.tagtic.cn, frodo.douban.com, amonsul.douban.com
