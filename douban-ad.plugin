@@ -6,8 +6,8 @@
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag=去广告, 豆瓣
-#!date=2026-11-22 22:05:00
-#!version=17
+#!date=2026-11-22 22:20:00
+#!version=18
 
 [Rule]
 # 豆瓣自有广告系统
@@ -40,11 +40,14 @@ DOMAIN-SUFFIX, oceanengine.com, REJECT
 DOMAIN-SUFFIX, pangolin-sdk-toutiao.com, REJECT
 DOMAIN-SUFFIX, pangolin-sdk-toutiao1.com, REJECT
 DOMAIN-SUFFIX, pangolin-sdk-toutiao-b.com, REJECT
-DOMAIN-SUFFIX, zijieapi.com, REJECT
-DOMAIN-SUFFIX, pstatp.com, REJECT
-DOMAIN-SUFFIX, douyinpic.com, REJECT
-DOMAIN-SUFFIX, douyinvod.com, REJECT
-DOMAIN, mssdk.volces.com, REJECT
+# 下面这些是字节的公共 CDN / 调度域，不是穿山甲专属广告域，整域 REJECT 会误伤抖音：
+#   douyinvod.com    抖音视频分发（v3-dy-o.douyinvod.com 等），封了直接转圈不出画面
+#   douyinpic.com    抖音封面 / 头像图床，封了封面空白
+#   pstatp.com       字节公共 CDN，抖音图片与部分静态资源也走它
+#   zijieapi.com     字节域名调度服务，抖音启动时也会请求
+#   mssdk.volces.com 火山 MediaSDK，播放器相关
+# Loon 的 [Rule] 是全设备生效、不区分 App，所以这里只能放行。
+# 豆瓣的穿山甲广告素材改由 erebor/feed_ad 与列表接口脚本过滤，不靠封 CDN。
 
 # 京东广告 SDK / 京准通
 DOMAIN, dsp-x.jd.com, REJECT

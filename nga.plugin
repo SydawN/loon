@@ -6,7 +6,8 @@
 #!icon=https://img.nga.cn/favicon.ico
 #!category=SydawN 的插件
 #!tag = 去广告, NGA
-#!date=2026-11-22 15:52:00
+#!date=2026-11-22 22:22:00
+#!version=2
 
 [Rule]
 # ============ 最优先：精确拦掉 js_domainConf.js ============
@@ -41,7 +42,8 @@ DOMAIN-SUFFIX, umeng.com, REJECT
 DOMAIN-SUFFIX, umengcloud.com, REJECT
 # 字节监控与域名服务（穿山甲旁路，广告位请求走 api-access.pangolin-sdk-toutiao.com）
 DOMAIN-SUFFIX, mon.zijieapi.com, REJECT
-DOMAIN-SUFFIX, tnc3-aliec2.snssdk.com, REJECT
+# tnc3-aliec2.snssdk.com 是字节全App共用的 TNC 域名调度服务，抖音启动也请求，不能封
+# DOMAIN-SUFFIX, tnc3-aliec2.snssdk.com, REJECT
 # 优量汇 SDK 的配置与事件通道（广告位仍走 mi.gdt.qq.com，这里只关旁路，省 648ms）
 DOMAIN-SUFFIX, sdk.e.qq.com, REJECT
 # 快手 gdfp 埋点
@@ -87,9 +89,11 @@ DOMAIN-SUFFIX, pangle.io, REJECT
 DOMAIN-SUFFIX, gromore.cn, REJECT
 DOMAIN-SUFFIX, oceanengine.com, REJECT
 DOMAIN-SUFFIX, pglstatp-toutiao.com, REJECT
-DOMAIN-SUFFIX, douyinstatic.com, REJECT
+# douyinstatic.com 是抖音静态资源域（表情/特效/贴纸），封了会让抖音部分资源加载失败
+# DOMAIN-SUFFIX, douyinstatic.com, REJECT
 DOMAIN-SUFFIX, ad.toutiao.com, REJECT
-DOMAIN-SUFFIX, ibytedtos.com, REJECT
+# ibytedtos.com 是字节公共 TOS 存储 CDN，抖音图片资源也可能走它
+# DOMAIN-SUFFIX, ibytedtos.com, REJECT
 
 # 优量汇 / 腾讯广告
 DOMAIN, e.qq.com, REJECT
