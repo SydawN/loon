@@ -1,8 +1,8 @@
-#!name=M-2
+#!name=M-3
 #!desc=Personal ruleset
 #!author=SydawN
-#!version=2
-#!date=2026-11-22 19:20:00
+#!version=3
+#!date=2026-11-22 19:45:00
 
 [Rule]
 URL-REGEX, ^https?://img4\.nga\.178\.com/common_res/js_domainConf\.js, REJECT
@@ -72,6 +72,8 @@ DOMAIN-SUFFIX, pangolin-sdk-toutiao-b.com, REJECT
 DOMAIN-SUFFIX, pglstatp-toutiao.com, REJECT
 DOMAIN-SUFFIX, douyinstatic.com, REJECT
 DOMAIN-SUFFIX, ad.toutiao.com, REJECT
+DOMAIN, webcast-open.douyin.com, REJECT
+DOMAIN-SUFFIX, bytescm.com, REJECT
 DOMAIN-SUFFIX, ibytedtos.com, REJECT
 DOMAIN-SUFFIX, pstatp.com, REJECT
 DOMAIN-SUFFIX, douyinpic.com, REJECT
