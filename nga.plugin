@@ -1,0 +1,162 @@
+#!name=NGA 去广告（精简加速版）
+#!desc=只保留抓包实测过的必要规则。启动加速改走策略层 REJECT-DICT（本地返回 200+空对象，完全不出网，0ms）——这是 Loon 唯一能绕过网络的手段；http-request 脚本只能修改请求、不能构造响应，之前那套写法在 Loon 里不执行，已移除。
+#!author=SydawN
+#!homepage=https://github.com/SydawN/loon
+#!raw-url=https://github.com/SydawN/loon/raw/main/nga.plugin
+#!icon=https://img.nga.cn/favicon.ico
+#!category=SydawN 的插件
+#!tag = 去广告, NGA
+#!date=2026-11-22 15:52:00
+
+[Rule]
+# ============ 最优先：精确拦掉 js_domainConf.js ============
+# 必须排在所有 DOMAIN 规则之前。Loon 按顺序命中第一条，之前它排在
+# DOMAIN, img4.nga.178.com, DIRECT 后面，被抢先放行，结果连接老图床挂到超时：
+#   77 号包 0ms（当时未放行，瞬时失败）
+#   80 号包 8644ms（被 DIRECT 放出去，一直挂着）
+# 同一个「顺序被抢」的错误，前面在 GEOIP,CN,DIRECT 上已经踩过一次。
+URL-REGEX, ^https?://img4\.nga\.178\.com/common_res/js_domainConf\.js, REJECT
+
+# ============ 第零层：强制放行 NGA 主站 ============
+# 为什么必须有这条：static_file_list（开屏配置下发）就在 ngabbs.com/nuke.php 上。
+# 一旦被别的插件（如 blockAds 里针对 NGA 的后缀规则）抢先 REJECT，请求就不出网，
+# http-response 脚本永远不触发，App 只能一直用缓存里那份缺 date 的假配置 → 开屏空转 4 秒。
+# 这个坑在 68 号包之后集中爆发：13~67 号包每次启动都有这条请求，68 号之后一次都没有。
+# 主站必须放行，广告靠脚本在响应体上处理，不靠拦域名。
+DOMAIN, ngabbs.com, DIRECT
+DOMAIN, nga.178.com, DIRECT
+DOMAIN, img.nga.cn, DIRECT
+DOMAIN, img4.nga.cn, DIRECT
+
+# ============ 零点半层：干掉启动阻塞源（最优先）============
+# js_domainConf.js 是本次启动慢的头号真凶。所有抓包里这条都是 status:0、size:0，
+# 说明 img4.nga.178.com 这个老图床早就不提供该文件了。连接会一直挂到 iOS 超时：
+#   68~73 号包  0ms（未被放行，瞬时失败）
+#   75 号包     5367ms（被上一版 DIRECT 规则放出去，一直挂着）
+# 这条规则已提到 [Rule] 最前面（见文件开头），此处不再重复。
+# 注意不要再给 img4.nga.178.com 加 DOMAIN ... DIRECT，那会让本规则失效。
+
+# 友盟统计：单条上报挂 2129~2920ms，纯后台埋点，拦掉不影响任何功能
+DOMAIN-SUFFIX, umeng.com, REJECT
+DOMAIN-SUFFIX, umengcloud.com, REJECT
+# 字节监控与域名服务（穿山甲旁路，广告位请求走 api-access.pangolin-sdk-toutiao.com）
+DOMAIN-SUFFIX, mon.zijieapi.com, REJECT
+DOMAIN-SUFFIX, tnc3-aliec2.snssdk.com, REJECT
+# 优量汇 SDK 的配置与事件通道（广告位仍走 mi.gdt.qq.com，这里只关旁路，省 648ms）
+DOMAIN-SUFFIX, sdk.e.qq.com, REJECT
+# 快手 gdfp 埋点
+DOMAIN-SUFFIX, gdfp.gifshow.com, REJECT
+
+# ============ 百度联盟 TagTic（NGA 开屏的真实上游）============
+# 76 号包才暴露出来：g1.tagtic.cn/v2/strategy/openscreen 就是开屏策略接口，
+# v2/ad/pre/video 是开屏视频预加载。之前几十轮只盯穿山甲/优量汇/快手，
+# 百度这边只拦了 mobads/cpro 那批老域名，tagtic.cn 完全漏掉——
+# 所以无论怎么清 intro001、怎么喂假数据，开屏永远有内容可播。
+# 注意：这里不能整域 REJECT。拦掉后 App 拿不到 ios-init 里的 splashMaximumWaitingTime，
+# 会用内置默认值继续等 3 秒，变成「没广告但白等」。必须放行 g1 交给脚本改写应答。
+DOMAIN, g1.tagtic.cn, DIRECT
+DOMAIN-SUFFIX, log3.tagtic.cn, REJECT-DICT
+
+# ============ 第一层：策略层本地返回（0ms，不出网）============
+# 用 REJECT-DICT 而不是脚本。Loon 的 http-request 脚本只能改请求头/Body，
+# 不能 $done({response}) 造响应（官方文档 http-request 段只列 $request 对象），写了也不执行。
+# 策略层在路由阶段就决定，连连接都不建立。
+# 实测被吃掉的时间：stats/batch 8 次×130ms、get_ads 841ms、settings 341+320ms、
+# 快手 config 148ms → 合计约 2000ms
+URL-REGEX, ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk/stats, REJECT-DICT
+URL-REGEX, ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk/(get_ads|settings), REJECT-DICT
+URL-REGEX, ^https://open\.e\.kuaishou\.com/rest/e/v3/open/(config|logBatch), REJECT-DICT
+
+# ============ 第二层：必须放行给脚本改应答（排在所有 REJECT 之前）============
+# 这几条若被下面任何后缀规则抢先拦掉，脚本就永远不会执行（这坑踩过两次）
+# 为什么不用 REJECT-DICT：优量汇要看到 ret=102006、快手要看到 result=40003 这类
+# 专有「无填充」码；空对象 {} 会被判成参数错误而触发重试，比放行更慢
+DOMAIN, mi.gdt.qq.com, DIRECT
+DOMAIN, open.e.kuaishou.com, DIRECT
+DOMAIN, is.snssdk.com, DIRECT
+DOMAIN, api-access.pangolin-sdk-toutiao.com, DIRECT
+
+# ============ 第三层：加密 SDK，改不动只能拦 ============
+# 一号联盟加密二进制包（实测 3594~8096 字节），66 号包复现过
+DOMAIN, sdk.1rtb.net, REJECT-DICT
+DOMAIN-SUFFIX, 1rtb.net, REJECT-DICT
+
+# ============ 第四层：广告联盟入口 ============
+# 穿山甲 / 巨量引擎（NGA aid=5000546）
+DOMAIN-SUFFIX, pangle.io, REJECT
+DOMAIN-SUFFIX, gromore.cn, REJECT
+DOMAIN-SUFFIX, oceanengine.com, REJECT
+DOMAIN-SUFFIX, pglstatp-toutiao.com, REJECT
+DOMAIN-SUFFIX, douyinstatic.com, REJECT
+DOMAIN-SUFFIX, ad.toutiao.com, REJECT
+DOMAIN-SUFFIX, ibytedtos.com, REJECT
+
+# 优量汇 / 腾讯广告
+DOMAIN, e.qq.com, REJECT
+DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
+DOMAIN-SUFFIX, adsmogo.com, REJECT
+DOMAIN, tid.m.qq.com, REJECT
+DOMAIN, tdid.m.qq.com, REJECT
+DOMAIN-SUFFIX, i.gtimg.cn, REJECT
+
+# 快手联盟
+DOMAIN-SUFFIX, kuaishouzt.com, REJECT
+DOMAIN-SUFFIX, ad.partner.gifshow.com, REJECT
+
+# mobrtb（开屏素材 720×1280）
+DOMAIN-SUFFIX, mobrtb.com, REJECT
+DOMAIN-SUFFIX, 52qumao.com, REJECT
+DOMAIN-SUFFIX, microengine.cn, REJECT
+
+# 亿典广告平台（开屏曝光上报 api.ocpx.ydmob.com）
+DOMAIN-SUFFIX, ydmob.com, REJECT
+
+# 京东京准通 / 开普勒
+DOMAIN-SUFFIX, jzt.jd.com, REJECT
+DOMAIN-SUFFIX, dg.k.jd.com, REJECT
+DOMAIN-SUFFIX, orbit.jd.com, REJECT
+
+# 阿里妈妈
+DOMAIN-SUFFIX, tanx.com, REJECT
+DOMAIN-SUFFIX, alimama.com, REJECT
+DOMAIN-SUFFIX, mmstat.com, REJECT
+
+# 百度联盟（只留 4 条核心，cpro/dup/nsclick 等长尾已从抓包里消失）
+URL-REGEX, ^http://m\.baidu\.com/baidu\.php, REJECT
+DOMAIN-SUFFIX, mobads.baidu.com, REJECT
+DOMAIN-SUFFIX, cpro.baidu.com, REJECT
+DOMAIN-SUFFIX, cpro.baidustatic.com, REJECT
+
+# 美团广告曝光监测（campaign_name=美食-必吃榜）
+DOMAIN-SUFFIX, apimobile.meituan.com, REJECT
+
+# 滴滴广告点击上报（快手渠道，UA=kwai-ios）
+DOMAIN, gungnir.xiaojukeji.com, REJECT
+
+[Script]
+# ---- 开屏配置：改成「过期窗口 + 假素材」----
+# 实测 intro001 返回空数组会让 App 回退内置默认开屏（这才是开屏清不掉的根因）
+# 所以给 type=com.dn 的假配置指向 427 字节小图，App 走完开屏流程但画面几乎空白
+# EXTRA_ADS_RULES 同理：清成 [] 会被当「无配置」回退默认，改成 start/end 均为 0 的过期窗口才会被跳过
+http-response ^https://ngabbs\.com/nuke\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-purge.js, requires-body=true, timeout=60, tag=NGA广告位改写
+
+# ---- adfree 字段伪装 ----
+http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
+
+# ---- 百度联盟 TagTic：改写策略应答（NGA 开屏的真实上游）----
+# 改应答而不是拦域名：拦了 App 会用默认 3 秒超时继续等，改应答才能真跳过
+# openscreen.result=false + splashMaximumWaitingTime=0 + aggregation.data=[]
+http-response ^https://g1\.tagtic\.cn/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/tagtic.js, requires-body=true, timeout=30, tag=TagTic策略改写
+
+# ---- 三联盟「喂假数据」----
+# 核心：无论原响应是 200/403/404，一律返回 200 + 标准「无填充」字段
+# 404 会被 SDK 判成网络错误而降级播缓存，这就是之前拦得越干净广告越顽固的原因
+http-response ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/mediation script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲竞价无填充
+http-response ^https://is\.snssdk\.com/api/ad/union/sdk script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲无填充
+http-response ^https://mi\.gdt\.qq\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=优量汇无填充
+http-response ^https://open\.e\.kuaishou\.com/rest/e/v3/open/univ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=快手联盟无填充
+
+[MITM]
+hostname = ngabbs.com, api-access.pangolin-sdk-toutiao.com, is.snssdk.com, mi.gdt.qq.com, open.e.kuaishou.com, g1.tagtic.cn
+
+[End of file.]

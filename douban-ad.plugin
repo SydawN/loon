@@ -1,0 +1,65 @@
+#!name=DB-14
+#!desc=Personal ruleset
+#!author=SydawN
+#!version=14
+#!date=2026-11-22 20:25:00
+
+[Script]
+http-response ^https://frodo\.douban\.com/api/v2/feature_switch script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/s1.js, requires-body=true, timeout=30
+http-response ^https://amonsul\.douban\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/s2.js, requires-body=true, timeout=30
+
+[MITM]
+hostname = frodo.douban.com, amonsul.douban.com
+
+[Rule]
+DOMAIN-SUFFIX, erebor.douban.com, REJECT
+DOMAIN-SUFFIX, ad.doubanio.com, REJECT
+URL-REGEX, ^https://api\.douban\.com/v2/app_ads/, REJECT-DICT
+URL-REGEX, ^https://api\.douban\.com/[a-zA-Z0-9]+/.*common_ads, REJECT-DICT
+URL-REGEX, ^https://img\d+\.doubanio\.com/view/dale-online/, REJECT
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/home_banner, REJECT-DICT
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/erebor/feed_ad, REJECT-DICT
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad, REJECT-DICT
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/movie/.*banner, REJECT-DICT
+DOMAIN, api.weibo.com, REJECT
+DOMAIN-SUFFIX, weibo.com, REJECT
+DOMAIN-SUFFIX, weibo.cn, REJECT
+DOMAIN-SUFFIX, wbimg.cn, REJECT
+DOMAIN-SUFFIX, weibocdn.com, REJECT
+DOMAIN-SUFFIX, sinaimg.cn, REJECT
+DOMAIN-SUFFIX, sax.sina.com.cn, REJECT
+DOMAIN-SUFFIX, saxs.sina.com.cn, REJECT
+DOMAIN-SUFFIX, sinaads.sina.com.cn, REJECT
+DOMAIN-SUFFIX, beacon.sina.com.cn, REJECT
+DOMAIN-SUFFIX, gdt.qq.com, REJECT
+DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
+DOMAIN-SUFFIX, ugdtimg.com, REJECT
+DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
+DOMAIN-SUFFIX, gdtimg.com, REJECT
+DOMAIN-SUFFIX, pangle.io, REJECT
+DOMAIN-SUFFIX, gromore.cn, REJECT
+DOMAIN-SUFFIX, oceanengine.com, REJECT
+DOMAIN-SUFFIX, pangolin-sdk-toutiao.com, REJECT
+DOMAIN-SUFFIX, pangolin-sdk-toutiao1.com, REJECT
+DOMAIN-SUFFIX, pangolin-sdk-toutiao-b.com, REJECT
+DOMAIN-SUFFIX, zijieapi.com, REJECT
+DOMAIN-SUFFIX, pstatp.com, REJECT
+DOMAIN-SUFFIX, douyinpic.com, REJECT
+DOMAIN-SUFFIX, douyinvod.com, REJECT
+DOMAIN, mssdk.volces.com, REJECT
+DOMAIN, dsp-x.jd.com, REJECT
+DOMAIN, janapi.jd.com, REJECT
+DOMAIN, xlog.jd.com, REJECT
+DOMAIN, knicks.jd.com, REJECT
+DOMAIN, mapi.m.jd.com, REJECT
+DOMAIN-SUFFIX, jzt.jd.com, REJECT
+DOMAIN-SUFFIX, orbit.jd.com, REJECT
+DOMAIN, baichuan-sdk.taobao.com, REJECT
+DOMAIN, baichuan-sdk.alicdn.com, REJECT
+DOMAIN-SUFFIX, tanx.com, REJECT
+DOMAIN-SUFFIX, alimama.com, REJECT
+DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
+DOMAIN-SUFFIX, kuaishouzt.com, REJECT
+DOMAIN-SUFFIX, mobads.baidu.com, REJECT
+DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
+DOMAIN-SUFFIX, cpro.baidu.com, REJECT
