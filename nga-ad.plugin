@@ -112,6 +112,12 @@ DOMAIN-SUFFIX, 360buyimg.com, REJECT
 # ---- 淘宝闪购 / 饿了么 开屏素材库（实测 1080x1920 jpeg，路径 ad-performance-advertiser）---
 DOMAIN-SUFFIX, qhzl.com.cn, REJECT
 
+# ---- 优量汇 TMF 归因（注意是 tdid 不是 tid，之前漏了一个 d）---
+DOMAIN, tdid.m.qq.com, REJECT
+DOMAIN-SUFFIX, tdid.m.qq.com, REJECT
+# 腾讯广告管理系统 ams-web（WebView 内加载的 page-performance.js）
+DOMAIN-SUFFIX, i.gtimg.cn, REJECT
+
 [Script]
 # 把 user&__act=detail 响应里的 adfree 改成 1
 http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
