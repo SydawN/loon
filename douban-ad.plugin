@@ -1,15 +1,14 @@
-#!name=DB-14
+#!name=DB-13
 #!desc=Personal ruleset
 #!author=SydawN
-#!version=14
-#!date=2026-11-22 20:25:00
+#!version=13
+#!date=2026-11-22 18:50:00
 
 [Script]
-http-response ^https://frodo\.douban\.com/api/v2/feature_switch script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/s1.js, requires-body=true, timeout=30
-http-response ^https://amonsul\.douban\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/s2.js, requires-body=true, timeout=30
+s1 = type=http-response,pattern=^https://frodo\.douban\.com/api/v2/feature_switch,requires-body=1,max-size=131072,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/s1.js
 
 [MITM]
-hostname = frodo.douban.com, amonsul.douban.com
+hostname = frodo.douban.com
 
 [Rule]
 DOMAIN-SUFFIX, erebor.douban.com, REJECT
@@ -21,6 +20,7 @@ URL-REGEX, ^https://frodo\.douban\.com/api/v2/home_banner, REJECT-DICT
 URL-REGEX, ^https://frodo\.douban\.com/api/v2/erebor/feed_ad, REJECT-DICT
 URL-REGEX, ^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad, REJECT-DICT
 URL-REGEX, ^https://frodo\.douban\.com/api/v2/movie/.*banner, REJECT-DICT
+
 DOMAIN, api.weibo.com, REJECT
 DOMAIN-SUFFIX, weibo.com, REJECT
 DOMAIN-SUFFIX, weibo.cn, REJECT
@@ -31,11 +31,13 @@ DOMAIN-SUFFIX, sax.sina.com.cn, REJECT
 DOMAIN-SUFFIX, saxs.sina.com.cn, REJECT
 DOMAIN-SUFFIX, sinaads.sina.com.cn, REJECT
 DOMAIN-SUFFIX, beacon.sina.com.cn, REJECT
+
 DOMAIN-SUFFIX, gdt.qq.com, REJECT
 DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
 DOMAIN-SUFFIX, ugdtimg.com, REJECT
 DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
 DOMAIN-SUFFIX, gdtimg.com, REJECT
+
 DOMAIN-SUFFIX, pangle.io, REJECT
 DOMAIN-SUFFIX, gromore.cn, REJECT
 DOMAIN-SUFFIX, oceanengine.com, REJECT
@@ -47,6 +49,7 @@ DOMAIN-SUFFIX, pstatp.com, REJECT
 DOMAIN-SUFFIX, douyinpic.com, REJECT
 DOMAIN-SUFFIX, douyinvod.com, REJECT
 DOMAIN, mssdk.volces.com, REJECT
+
 DOMAIN, dsp-x.jd.com, REJECT
 DOMAIN, janapi.jd.com, REJECT
 DOMAIN, xlog.jd.com, REJECT
@@ -54,12 +57,15 @@ DOMAIN, knicks.jd.com, REJECT
 DOMAIN, mapi.m.jd.com, REJECT
 DOMAIN-SUFFIX, jzt.jd.com, REJECT
 DOMAIN-SUFFIX, orbit.jd.com, REJECT
+
 DOMAIN, baichuan-sdk.taobao.com, REJECT
 DOMAIN, baichuan-sdk.alicdn.com, REJECT
 DOMAIN-SUFFIX, tanx.com, REJECT
 DOMAIN-SUFFIX, alimama.com, REJECT
+
 DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
 DOMAIN-SUFFIX, kuaishouzt.com, REJECT
+
 DOMAIN-SUFFIX, mobads.baidu.com, REJECT
 DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
 DOMAIN-SUFFIX, cpro.baidu.com, REJECT
