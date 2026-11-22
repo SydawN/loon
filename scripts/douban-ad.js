@@ -46,7 +46,25 @@
     return reply({});
   }
 
-  // ---- 开屏四件套 ----
+  // ---- 开屏：splash_bid 必须回完整的「无 SDK 广告」结构 ----
+  // 84 号包实测，服务器真实的「没广告」应答是这 106 字节：
+  //   {"sdk_win":0,"sdk_id":"","sdk_ad_info":null,"backup_sdk_id":"","backup_ad_info":null,"backend_duration":6}
+  // 裸 {} 缺了 sdk_win / backup_sdk_id，App 无法判定「没有备选 SDK 广告」，
+  // 会退到优量汇（gdtSplashSDK）的本地缓存创意继续开屏。这里按原结构补全。
+  if (/\/v2\/app_ads\/splash_bid/.test(url)) {
+    return reply({
+      sdk_win: 0,
+      sdk_id: "",
+      sdk_ad_info: null,
+      backup_sdk_id: "",
+      backup_ad_info: null,
+      backend_duration: 0
+    });
+  }
+
+  // ---- 开屏其余三条（preload / show / statistics）----
+  // show 的请求体里带着 preload_ads（豆瓣自有预加载队列）和 sdk_list（各联盟已缓存的创意），
+  // 说明开屏是在启动瞬间拿本地素材展示的，服务端应答拦不住已缓存的那几条。
   if (/\/v2\/app_ads\//.test(url)) {
     return reply({});
   }

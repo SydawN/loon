@@ -28,7 +28,10 @@ DOMAIN, webcast-open.douyin.com, REJECT
 
 # 优量汇 / 腾讯广告（豆瓣 app id 1106295950）
 DOMAIN-SUFFIX, gdt.qq.com, REJECT
-DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
+DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT-IMG
+# 优量汇的开屏素材就是从这个 CDN 下的。85 号包证明 App 会把下载过的创意缓存在本地，
+# 之后再也不联网也能开屏——所以这里用 REJECT-IMG 断掉素材下载，让缓存清空后不再回填
+URL-REGEX, ^https://pgdt\.ugdtimg\.com/, REJECT-IMG
 DOMAIN-SUFFIX, adsmogo.com, REJECT
 
 # 快手联盟
