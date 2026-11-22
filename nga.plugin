@@ -21,6 +21,25 @@ DOMAIN, img.nga.cn, DIRECT
 DOMAIN, img4.nga.cn, DIRECT
 DOMAIN, img4.nga.178.com, DIRECT
 
+# ============ 零点半层：干掉启动阻塞源（最优先）============
+# js_domainConf.js 是本次启动慢的头号真凶。所有抓包里这条都是 status:0、size:0，
+# 说明 img4.nga.178.com 这个老图床早就不提供该文件了。连接会一直挂到 iOS 超时：
+#   68~73 号包  0ms（未被放行，瞬时失败）
+#   75 号包     5367ms（被上一版 DIRECT 规则放出去，一直挂着）
+# 两种都让 App 卡在启动页。必须精确拦这个路径并立刻返回，同时保留域名用于帖子图片。
+URL-REGEX, ^https?://img4\.nga\.178\.com/common_res/js_domainConf\.js, REJECT
+
+# 友盟统计：单条上报挂 2129~2920ms，纯后台埋点，拦掉不影响任何功能
+DOMAIN-SUFFIX, umeng.com, REJECT
+DOMAIN-SUFFIX, umengcloud.com, REJECT
+# 字节监控与域名服务（穿山甲旁路，广告位请求走 api-access.pangolin-sdk-toutiao.com）
+DOMAIN-SUFFIX, mon.zijieapi.com, REJECT
+DOMAIN-SUFFIX, tnc3-aliec2.snssdk.com, REJECT
+# 优量汇 SDK 的配置与事件通道（广告位仍走 mi.gdt.qq.com，这里只关旁路，省 648ms）
+DOMAIN-SUFFIX, sdk.e.qq.com, REJECT
+# 快手 gdfp 埋点
+DOMAIN-SUFFIX, gdfp.gifshow.com, REJECT
+
 # ============ 第一层：策略层本地返回（0ms，不出网）============
 # 用 REJECT-DICT 而不是脚本。Loon 的 http-request 脚本只能改请求头/Body，
 # 不能 $done({response}) 造响应（官方文档 http-request 段只列 $request 对象），写了也不执行。
