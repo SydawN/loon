@@ -114,3 +114,38 @@ SDK 缓存的有效期通常是几天到几周，期间无论怎么改规则都�
 ## 免责
 
 仅供个人学习与自用。规则会改动客户端接口返回体，不排除未来 App 更新后出现异常。出问题先停用对应插件，定位到具体接口再逐条放开。
+
+---
+
+## 二次核查（2026-11-22 12:38 抓包 93 条）
+
+### adfree 脚本已被证实无效
+`app_api.php?__lib=user&__act=detail` 的响应中 `"adfree":1`（脚本改写成功），但广告数量、位置完全不变。
+说明该字段只用于控制「付费会员可免除广告」这句文案是否显示，**不控制广告位**。脚本可保留，但不指望它去广告。
+
+### NGA 服务端接口是干净的
+- `subject&__act=list`（45 条帖子）：无任何广告字段
+- `banner_list`：BLG 夺冠 / 使命召唤 / 鬼武者 / 金刚狼，`bit:2`、`target_data` 空 → 官方运营
+- `static_file_list`：28 个 JS/CSS，全是编辑器与 BBS 代码资源
+- `buff`：表情包文件名
+- `get_event_app`：原神 7.2 签到
+
+广告 100% 来自客户端广告 SDK，与接口无关。
+
+### 本轮真实链路（3 条并行竞价）
+
+| 广告主 | 渠道 | 证据 |
+|---|---|---|
+| 美团必吃榜 | 穿山甲 | `apimobile.meituan.com/prom/v2/action_monitor?campaign_name=美食-必吃榜-付费-联盟ios-图片&mt_channel=jinritoutiao&csite=33013&feedback_url=ad.toutiao.com` |
+| 滴滴「盟耀-站内-10元」 | 快手联盟 | `gungnir.xiaojukeji.com/data-ingestion/api/collect-kuaishou?...&UA=kwai-ios&callback=ad.partner.gifshow.com` |
+| 未知名次 | 广告星 | `log-loss.adstarcharm.com/log/monitorInfo/failReport?price=307&lossType=1` |
+
+素材本体：`sf3-cdn-tos.douyinstatic.com/obj/iesmusic-cn-local/v1/tt-obj/*.mp3`（812KB，开屏视频音轨，UA=AppleCoreMedia）
+
+### 本轮新增拦截
+`douyinstatic.com`、`ad.toutiao.com`、`apimobile.meituan.com`、`gungnir.xiaojukeji.com`、`ad.partner.gifshow.com`、`adstarcharm.com`、`ads.sinaimg.cn`、`gdtimg.com`
+
+### 规则顺序警告
+Loon 插件 `[Rule]` 追加在主配置规则**之后**。若主配置中存在 `GEOIP,CN,DIRECT`，所有国内域名的广告请求会先命中该条并直连，插件里的 REJECT 全部轮不到。
+实测截图已出现：`p23.a.yximgs.com` 明明在插件里是 REJECT，请求详情却显示 `GEOIP,CN,DIRECT`。
+**必须把广告 REJECT 规则提到 `GEOIP,CN,DIRECT` 之前**，或删除该条。

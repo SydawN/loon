@@ -70,6 +70,30 @@ DOMAIN-SUFFIX, youku-dsp.youku.com, REJECT
 DOMAIN, content-understand-strategy.sm.cn, REJECT
 URL-REGEX, ^https://lf-cdn-tos\.bytescm\.com/obj/static/ad/, REJECT
 
+# ================= 2026-11-22 二次抓包新增 =================
+# 结论：adfree 已被脚本改写为 1，但广告全在。该字段不控制广告位，只影响「付费会员可免除广告」文案。
+# 真实广告链路：美团必吃榜（穿山甲渠道）+ 滴滴（快手联盟 channel）+ 广告星竞价
+
+# 穿山甲 / 巨量素材 CDN（实测开屏与信息流加载 812KB mp3 及图片素材）
+DOMAIN-SUFFIX, douyinstatic.com, REJECT
+DOMAIN-SUFFIX, ad.toutiao.com, REJECT
+
+# 美团广告曝光监测（campaign_name=美食-必吃榜-付费-联盟ios-图片, mt_channel=jinritoutiao, csite=33013）
+DOMAIN-SUFFIX, apimobile.meituan.com, REJECT
+
+# 滴滴广告点击上报（快手联盟渠道，product_id=wycck, UA=kwai-ios, dname=盟耀-站内）
+DOMAIN, gungnir.xiaojukeji.com, REJECT
+DOMAIN-SUFFIX, ad.partner.gifshow.com, REJECT
+
+# 广告星 adstarcharm 竞价失败上报（price=307 即 eCPM 3.07 元）
+DOMAIN-SUFFIX, adstarcharm.com, REJECT
+
+# 微博广告图床（KID=imgbed,ads）
+DOMAIN-SUFFIX, ads.sinaimg.cn, REJECT
+
+# 优量汇素材 CDN 补漏
+DOMAIN-SUFFIX, gdtimg.com, REJECT
+
 [Script]
 # 把 user&__act=detail 响应里的 adfree 改成 1
 http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
