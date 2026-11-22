@@ -44,6 +44,9 @@ DOMAIN-SUFFIX,pgdt.gtimg.cn,REJECT
 DOMAIN-SUFFIX,adsmogo.com,REJECT
 DOMAIN,tid.m.qq.com,REJECT
 
+# ---- 亿典广告平台 ydmob（北京亿典科技，实测开屏曝光上报走 api.ocpx.ydmob.com）----
+DOMAIN-SUFFIX,ydmob.com,REJECT
+
 # ---- 快手联盟素材 CDN（实测开屏淘宝闪购广告走 p23.a.yximgs.com）----
 # 注意：a.yximgs.com 同时承载帖子里的快手外链图，故只精确挡广告分片
 DOMAIN,p23.a.yximgs.com,REJECT
