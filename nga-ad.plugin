@@ -32,10 +32,17 @@ DOMAIN-SUFFIX, dup.baidustatic.com, REJECT
 DOMAIN-SUFFIX, pangle.io, REJECT
 DOMAIN-SUFFIX, gromore.cn, REJECT
 DOMAIN-SUFFIX, oceanengine.com, REJECT
-DOMAIN-SUFFIX, pangolin-sdk-toutiao.com, REJECT
+# 【重要】pangolin-sdk-toutiao.com 不能整域 REJECT
+# REJECT 会让 SDK 认为网络出错，从而降级播放本地缓存素材
+# 正确做法：放行，由 [Script] 里的 adsense.js 把 get_ads 应答改成「无广告填充」
+DOMAIN, api-access.pangolin-sdk-toutiao.com, DIRECT
+DOMAIN, is.snssdk.com, DIRECT
 DOMAIN-SUFFIX, pglstatp-toutiao.com, REJECT
 
 # 优量汇 / 腾讯广告
+# 【重要】mi.gdt.qq.com 是优量汇的拉广告接口，不能 REJECT
+# 放行后由 adsense.js 把 ret 改成 102006（无广告返回）
+DOMAIN, mi.gdt.qq.com, DIRECT
 DOMAIN-SUFFIX, gdt.qq.com, REJECT
 DOMAIN, e.qq.com, REJECT
 DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
@@ -52,7 +59,9 @@ DOMAIN-SUFFIX, ydmob.com, REJECT
 
 # 快手联盟素材（实测 p2/p4.a.yximgs.com/upic/ 下 360x640 广告图，与帖子图同域名同路径，只能整域拦）
 DOMAIN-SUFFIX, a.yximgs.com, REJECT
-DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
+# 【重要】open.e.kuaishou.com 是快手联盟拉广告接口，不能 REJECT
+# 放行后由 adsense.js 把 result 改成 40003（无广告返回）
+DOMAIN-SUFFIX, open.e.kuaishou.com, DIRECT
 DOMAIN-SUFFIX, kuaishouzt.com, REJECT
 
 # 京东京准通 / 开普勒
@@ -132,5 +141,13 @@ DOMAIN-SUFFIX, kuiniuca.com, REJECT
 # 把 user&__act=detail 响应里的 adfree 改成 1
 http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
 
+# ===== 广告联盟「喂假数据」=====
+# 思路：不拦域名，而是把 SDK 的拉广告应答改写成「无广告填充」
+# 这样 SDK 认为服务端明确没有广告，直接不播；而 REJECT 会让它以为网络出错、降级播本地缓存
+http-response ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲无填充
+http-response ^https://is\.snssdk\.com/api/ad/union/sdk script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲无填充
+http-response ^https://mi\.gdt\.qq\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=优量汇无填充
+http-response ^https://open\.e\.kuaishou\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=快手联盟无填充
+
 [MITM]
-hostname = ngabbs.com, lf-cdn-tos.bytescm.com, img.nga.cn, img4.nga.cn
+hostname = ngabbs.com, lf-cdn-tos.bytescm.com, img.nga.cn, img4.nga.cn, api-access.pangolin-sdk-toutiao.com, is.snssdk.com, mi.gdt.qq.com, open.e.kuaishou.com
