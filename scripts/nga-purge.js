@@ -19,13 +19,15 @@ if (/__act=static_file_list/i.test(url)) {
         if (!item || typeof item !== 'object') return;
         if (Array.isArray(item.EXTRA_ADS_RULES)) item.EXTRA_ADS_RULES = [];
         if (Array.isArray(item.intro001)) {
-          // 关键：不能把 intro001 清成 []，那会让 App 认为「服务端无配置」而回退内置默认开屏
-          // 正确做法是只保留穿山甲类型，穿山甲接口已被 404 拦住，开屏拿不到素材
-          // 必须摘掉 type=com.dn 那条：它走 NGA 自有图床 img.nga.178.com，不走任何联盟
-          const kept = item.intro001.filter(function (x) {
-            return x && typeof x === 'object' && x.type !== 'com.dn';
-          });
-          item.intro001 = kept.length ? kept : [{ type: 'com.bytedance' }];
+          // 服务端实测返回 intro001: []
+          // 空数组会让 App 回退到内置默认开屏（穿山甲），这就是开屏广告清不掉的原因
+          // 所以给一个「假配置」：type=com.dn 是 App 识别的类型，resurl 指向一张 427 字节的勋章图
+          // App 会正常走开屏流程、加载这张小图，放大后几乎空白，但不再是广告
+          item.intro001 = [{
+            type: 'com.dn',
+            resurl: 'https://img4.nga.cn/ngabbs/medal/260.gif',
+            targeturl: ''
+          }];
         }
       });
     }
