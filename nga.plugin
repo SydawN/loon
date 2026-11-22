@@ -9,6 +9,18 @@
 #!date=2026-11-22 15:52:00
 
 [Rule]
+# ============ 第零层：强制放行 NGA 主站 ============
+# 为什么必须有这条：static_file_list（开屏配置下发）就在 ngabbs.com/nuke.php 上。
+# 一旦被别的插件（如 blockAds 里针对 NGA 的后缀规则）抢先 REJECT，请求就不出网，
+# http-response 脚本永远不触发，App 只能一直用缓存里那份缺 date 的假配置 → 开屏空转 4 秒。
+# 这个坑在 68 号包之后集中爆发：13~67 号包每次启动都有这条请求，68 号之后一次都没有。
+# 主站必须放行，广告靠脚本在响应体上处理，不靠拦域名。
+DOMAIN, ngabbs.com, DIRECT
+DOMAIN, nga.178.com, DIRECT
+DOMAIN, img.nga.cn, DIRECT
+DOMAIN, img4.nga.cn, DIRECT
+DOMAIN, img4.nga.178.com, DIRECT
+
 # ============ 第一层：策略层本地返回（0ms，不出网）============
 # 用 REJECT-DICT 而不是脚本。Loon 的 http-request 脚本只能改请求头/Body，
 # 不能 $done({response}) 造响应（官方文档 http-request 段只列 $request 对象），写了也不执行。
