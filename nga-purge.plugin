@@ -1,0 +1,15 @@
+#!name=NGA 清空首页运营位
+#!desc=清空顶部横幅轮播、推荐主题流、活动入口。只删服务端下发的运营模块，不碰帖子列表。若清空后 App 异常，停用本插件即可恢复。
+#!author=SydawN
+#!homepage=https://github.com/SydawN/loon
+#!raw-url=https://github.com/SydawN/loon/raw/main/nga-purge.plugin
+#!icon=https://img.nga.cn/favicon.ico
+#!category=SydawN 的插件
+#!tag = 去运营位, NGA
+#!date=2026-11-22 13:10:00
+
+[Script]
+http-response ^https://ngabbs\.com/nuke\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-purge.js, requires-body=true, timeout=60, tag=NGA清空首页运营位
+
+[MITM]
+hostname = ngabbs.com
