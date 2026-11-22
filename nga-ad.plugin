@@ -14,6 +14,10 @@ DOMAIN, mi.gdt.qq.com, DIRECT
 DOMAIN, open.e.kuaishou.com, DIRECT
 DOMAIN, is.snssdk.com, DIRECT
 
+# 多多买菜（拼多多系）广告点击上报，实测开屏/信息流会走这条
+DOMAIN-SUFFIX, ad.ddxq.mobi, REJECT
+DOMAIN-SUFFIX, ddxq.mobi, REJECT
+
 # 优量汇素材与联盟角标（实测开屏会加载 ylg_logo.png）
 DOMAIN, sigcdn.oss-cn-beijing.aliyuncs.com, REJECT
 

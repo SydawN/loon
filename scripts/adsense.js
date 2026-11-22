@@ -48,3 +48,22 @@ if (url.indexOf('open.e.kuaishou.com') !== -1) {
 }
 
 $done({});
+
+// 穿山甲 Mediation 聚合竞价：exchange 会直接下发广告列表（实测 21537 字节）
+// get_ads 被挡后 SDK 会绕道这里拿真广告，必须一并清空
+if (url.indexOf('/api/ad/union/mediation/exchange') !== -1) {
+  $done({
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: 0, message: 'success', data: [], request_id: '' })
+  });
+}
+
+// Mediation 配置：保留成功但把可用广告位清单清空
+if (url.indexOf('/api/ad/union/mediation/config') !== -1) {
+  $done({
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: 0, message: 'success', data: {} })
+  });
+}
