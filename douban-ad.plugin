@@ -12,6 +12,8 @@
 # ============ 豆瓣自有广告系统 Dale ============
 # erebor 是豆瓣的广告投放域名，只服务广告，拦掉安全
 DOMAIN, erebor.douban.com, REJECT
+# amonsul 是广告策略下发，要放行给脚本改开关，不能拦
+DOMAIN, amonsul.douban.com, DIRECT
 # 广告图在 doubanio 的 dale-online 路径下。这里用 REJECT-IMG 而不是 REJECT：
 # REJECT 回 404，图片加载失败会让 App 认为 CDN 出问题；
 # REJECT-IMG 回 200 + 1×1 像素，App 当正常的空图，广告位显示空白而不报错
@@ -47,5 +49,17 @@ DOMAIN-SUFFIX, orbit.jd.com, REJECT
 # 阿里妈妈
 DOMAIN-SUFFIX, tanx.com, REJECT
 DOMAIN-SUFFIX, alimama.com, REJECT
+
+[Script]
+# 豆瓣广告位应答改写。结构全部来自 14 号包实测
+http-response ^https://frodo\.douban\.com/api/v2/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-ad.js, requires-body=true, timeout=30, tag=豆瓣广告位
+# 开屏四件套 + amonsul 广告总开关
+http-response ^https://(api\.douban\.com/v2/app_ads|amonsul\.douban\.com/check2) script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-ad.js, requires-body=true, timeout=30, tag=豆瓣开屏与开关
+
+[MITM]
+# 只开这三个。image CDN（img1~9.doubanio.com）绝对不能加进来：
+# 它们承载的是头像和帖子配图本身，没有任何脚本要用，开了 MITM 只会让图片解密后加载失败，
+# 这就是旧版「正常内容打不开」的主因。
+hostname = frodo.douban.com, api.douban.com, amonsul.douban.com
 
 [End of file.]
