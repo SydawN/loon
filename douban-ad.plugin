@@ -1,62 +1,58 @@
-#!name=豆瓣去广告 v5
-#!desc=v5 掐SDK版：MITM 只留 frodo 一个域名，脚本只改 4 个广告接口，登录/账号链路完全不碰。开屏四件套走策略层 REJECT-DICT 回 {}，并 REJECT 优量汇 SDK 入口；本插件需排在 NGA 插件之上。看到这行文字说明你装的是 v5。
+#!name=豆瓣去广告 v6
+#!desc=v6 零解密版：整个插件不含任何 MITM、不含任何脚本，只在策略层拦广告域名和广告接口。豆瓣的登录、账号、内容链路一行都不碰——关掉 Loon 才能登录的那类问题，根源都是 MITM 解密，这一版把它彻底去掉了。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
 #!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag = 去广告, 豆瓣
-#!date=2026-11-22 18:00:00
-#!version=5
+#!date=2026-11-22 18:30:00
+#!version=6
 
 [Rule]
-# 【顺序要求】本插件必须排在 NGA 插件之上。Loon 把插件规则按列表顺序合并到主配置，
-# NGA 插件里那条 DOMAIN, mi.gdt.qq.com, DIRECT 会抢先命中，导致下面这条失效。
-# 这是 88 号包验证出来的：gdt_mview.fcg 仍返回 200/28B，说明 DIRECT 赢了。
-
-# 掐掉优量汇 SDK 的入口。它下不到素材（ugdtimg / tfogc 已断）却会把上一次的创意从
-# 沙盒里翻出来重播，所以这里直接让 SDK 初始化失败，连展示入口都不给它。
-DOMAIN, mi.gdt.qq.com, REJECT
-
-# ============ 豆瓣自有广告系统 Dale ============
-# erebor 是豆瓣的广告投放域名，只服务广告，拦掉安全
+# ============ 豆瓣自有广告系统 Dale / Erebor / Amonsul ============
+# erebor 只做广告竞价，拦掉安全
 DOMAIN, erebor.douban.com, REJECT
-# 开屏四件套：在策略层直接回 {}，不依赖 MITM 解密。
-# api.douban.com 同时承载账号/登录类接口，为降低风险本版不再对它开启 MITM，
-# 这是「登录不上」最可能的关联点。
+
+# 开屏四件套（splash_bid / preload / show / statistics）
+# 策略层直接回 200 + {}，不需要解密，所以 api.douban.com 完全不进 MITM
 URL-REGEX, ^https://api\.douban\.com/v2/app_ads/, REJECT-DICT
-# 广告图在 doubanio 的 dale-online 路径下。这里用 REJECT-IMG 而不是 REJECT：
-# REJECT 回 404，图片加载失败会让 App 认为 CDN 出问题；
-# REJECT-IMG 回 200 + 1×1 像素，App 当正常的空图，广告位显示空白而不报错
+
+# 广告图（首页横幅、开屏静态图都在这个路径下）
+# 用 REJECT-IMG 回 1×1 像素而不是 404，App 当正常的空图，广告位空白但不报错
 URL-REGEX, ^https://img\d+\.doubanio\.com/view/dale-online/, REJECT-IMG
+
+# 首页横幅
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/home_banner, REJECT-DICT
+# 信息流里插的那条广告
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/erebor/feed_ad, REJECT-DICT
+# 小组页广告位
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad, REJECT-DICT
+
+# home_ads 故意不动。它在 14 号包里原样就是 {"cache_duration":7200}，本来就没广告；
+# 上一版硬改成空对象丢了 cache_duration，App 判非法缓存指令，整个首页块不渲染。
 
 # ============ 广告联盟入口 ============
 # 穿山甲（豆瓣 site_id 5003518）
 DOMAIN-SUFFIX, pangle.io, REJECT
 DOMAIN-SUFFIX, gromore.cn, REJECT
 DOMAIN-SUFFIX, oceanengine.com, REJECT
-DOMAIN, webcast-open.douyin.com, REJECT
 
 # 优量汇 / 腾讯广告（豆瓣 app id 1106295950）
 DOMAIN-SUFFIX, gdt.qq.com, REJECT
 DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT-IMG
-# 优量汇的素材全在 ugdtimg 下：pgdt.（静态图）、adsmind.（视频）。
-# 87 号包证明只拦 pgdt 没用——真正的开屏素材是 adsmind 的两个 mp4（1.9MB + 894KB），
-# 它们是 302 跳到 *.rdt.tfogc.com:49156 下载的，光拦 ugdtimg 也拦不住。
+# 素材在 ugdtimg 下：pgdt.（静态图）、adsmind.（视频），视频 302 落到 *.rdt.tfogc.com:49156
 DOMAIN-SUFFIX, ugdtimg.com, REJECT-IMG
 DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
-DOMAIN-SUFFIX, adsmogo.com, REJECT
 
 # 快手联盟
 DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
 DOMAIN-SUFFIX, kuaishouzt.com, REJECT
 
 # 百度联盟
-URL-REGEX, ^http://m\.baidu\.com/baidu\.php, REJECT
 DOMAIN-SUFFIX, mobads.baidu.com, REJECT
 DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
 DOMAIN-SUFFIX, cpro.baidu.com, REJECT
-DOMAIN-SUFFIX, pos.baidu.com, REJECT
 
 # 京东京准通
 DOMAIN-SUFFIX, jzt.jd.com, REJECT
@@ -65,16 +61,5 @@ DOMAIN-SUFFIX, orbit.jd.com, REJECT
 # 阿里妈妈
 DOMAIN-SUFFIX, tanx.com, REJECT
 DOMAIN-SUFFIX, alimama.com, REJECT
-
-[Script]
-# 豆瓣广告位应答改写。结构全部来自 14 号包实测
-http-response ^https://frodo\.douban\.com/api/v2/(home_ads|home_banner|erebor/feed_ad|group/[0-9]+/ad) script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-ad.js, requires-body=true, timeout=30, tag=豆瓣广告位
-# 说明：amonsul（广告总开关）本版不改写、不拦截、不开 MITM，原样放行
-
-[MITM]
-# 只开这一个。image CDN（img1~9.doubanio.com）绝对不能加进来：
-# 它们承载的是头像和帖子配图本身，没有任何脚本要用，开了 MITM 只会让图片解密后加载失败，
-# 这就是旧版「正常内容打不开」的主因。
-hostname = frodo.douban.com
 
 [End of file.]
