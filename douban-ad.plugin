@@ -6,8 +6,8 @@
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag=去广告, 豆瓣
-#!date=2026-11-22 19:30:00
-#!version=15
+#!date=2026-11-22 21:10:00
+#!version=16
 
 [Rule]
 # 豆瓣自有广告系统
@@ -92,6 +92,7 @@ DOMAIN-SUFFIX, cpro.baidu.com, REJECT
 [Script]
 http-response ^https:\/\/frodo\.douban\.com\/api\/v2\/feature_switch script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-feature.js, requires-body=true, timeout=60
 http-response ^https?:\/\/amonsul\.douban\.com\/check2 script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/s2.js, requires-body=true, timeout=60
+http-response ^https?:\/\/frodo\.douban\.com\/api\/v2\/erebor\/feed_ad script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/feed-ad.js, requires-body=true, timeout=60
 
 [MITM]
 hostname = api.douban.com, frodo.douban.com, amonsul.douban.com, img*.doubanio.com, qnmob*.doubanio.com, img*.douban.com, erebor.douban.com

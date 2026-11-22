@@ -28,6 +28,18 @@ if ($response.status === 200 && $response.body) {
       changed = true;
     }
 
+    // 开屏已经拿不到广告了，这些超时只是让启动页白等，全部清零
+    var fast = {
+      enable_splash_client_bid: false,
+      splash_client_bid_use_preload: false,
+      splash_bid_timeout: 0,
+      splash_ad_fetch_timeout: 0,
+      splash_show_timeout: 0,
+      splash_mi_timeout: 0,
+      enable_sdk_ad: false
+    };
+    for (var k in fast) { if (o[k] !== fast[k]) { o[k] = fast[k]; changed = true; } }
+
     // 顺手兜住可能出现的其他开屏配置键
     if (o.splash_ad) { o.splash_ad = null; changed = true; }
     if (Array.isArray(o.splash_ads) && o.splash_ads.length > 0) { o.splash_ads = []; changed = true; }
