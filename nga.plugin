@@ -141,7 +141,7 @@ DOMAIN-SUFFIX, kuiniuca.com, REJECT
 # 与下面的 http-response 是两回事：http-response 要先出网拿到真响应才改写，省不了时间
 # 实测这几条合计吃掉 3909ms：get_ads 712、settings 457+429、gdt_mview 412+287、
 # get_event_app 524、banner_list 424+108、recmd_topic 353+203
-# 注意 must 放在 [Rule] 之前生效——Loon 的 http-request 在策略路由前执行
+# 注意必须放在 [Rule] 之前生效——Loon 的 http-request 在策略路由前执行
 http-request ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk/(get_ads|settings) script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-stub.js, timeout=10, tag=穿山甲本地短路
 http-request ^https://mi\.gdt\.qq\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-stub.js, timeout=10, tag=优量汇本地短路
 http-request ^https://ngabbs\.com/nuke\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-stub.js, timeout=10, tag=NGA广告位本地短路
