@@ -1,13 +1,13 @@
 #!name=豆瓣去广告（安全版）
-#!desc=v3 降风险版：MITM 只留 frodo 一个域名，脚本只改 4 个广告接口，登录/账号链路完全不碰。开屏四件套走策略层 REJECT-DICT 回 {}，优量汇素材 CDN 断供。看到这行文字说明你装的是 v3。
+#!desc=v4 提速版：MITM 只留 frodo 一个域名，脚本只改 4 个广告接口，登录/账号链路完全不碰。开屏四件套走策略层 REJECT-DICT 回 {}，优量汇图片与视频素材 CDN 全部断供。看到这行文字说明你装的是 v4。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
 #!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag = 去广告, 豆瓣
-#!date=2026-11-22 17:10:00
-#!version=3
+#!date=2026-11-22 17:40:00
+#!version=4
 
 [Rule]
 # ============ 豆瓣自有广告系统 Dale ============
@@ -32,9 +32,11 @@ DOMAIN, webcast-open.douyin.com, REJECT
 # 优量汇 / 腾讯广告（豆瓣 app id 1106295950）
 DOMAIN-SUFFIX, gdt.qq.com, REJECT
 DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT-IMG
-# 优量汇的开屏素材就是从这个 CDN 下的。85 号包证明 App 会把下载过的创意缓存在本地，
-# 之后再也不联网也能开屏——所以这里用 REJECT-IMG 断掉素材下载，让缓存清空后不再回填
-URL-REGEX, ^https://pgdt\.ugdtimg\.com/, REJECT-IMG
+# 优量汇的素材全在 ugdtimg 下：pgdt.（静态图）、adsmind.（视频）。
+# 87 号包证明只拦 pgdt 没用——真正的开屏素材是 adsmind 的两个 mp4（1.9MB + 894KB），
+# 它们是 302 跳到 *.rdt.tfogc.com:49156 下载的，光拦 ugdtimg 也拦不住。
+DOMAIN-SUFFIX, ugdtimg.com, REJECT-IMG
+DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
 DOMAIN-SUFFIX, adsmogo.com, REJECT
 
 # 快手联盟
