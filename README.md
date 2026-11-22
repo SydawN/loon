@@ -6,9 +6,11 @@ Loon 去广告插件合集。规则来自 iOS 客户端真实抓包（Loon 1.0 �
 
 | 文件 | 适用 | 依赖 MITM |
 |---|---|---|
-| `douban-ad.plugin` | 豆瓣 App | 是 |
-| `nga-ad.plugin` | NGA 官方 App | 是 |
+| `douban-ad.plugin` | 豆瓣 App | 是（图床 + 接口脚本） |
+| `nga-ad.plugin` | NGA 官方 App | 仅字节 SDK 一条 |
 | `rules/ad-domains.snippet` | 任意 App，纯分流 | 否 |
+
+两个插件都**自包含完整联盟清单**，订一个就能挡住大部分广告 SDK。同时订阅不冲突，重复规则命中第一条即停。
 
 ## 安装
 
@@ -23,54 +25,52 @@ https://raw.githubusercontent.com/SydawN/loon/main/nga-ad.plugin
 
 ### 手动
 
-下载 `.plugin` 文件到 Loon 的 `Plugin` 目录，插件内的 `script-path` 已指向本仓库 raw 地址，无需额外配置。
+下载 `.plugin` 文件到 Loon 的 `Plugin` 目录即可，`script-path` 已指向本仓库 raw 地址。
+
+## 版本修正（v1.1，2026-11-22）
+
+v1.0 的 `nga-ad.plugin` 用脚本清空了 `app_inter` 的三个接口，**这是错的**。对 129 条真实抓包逐条解析后发现：
+
+| 接口 | v1.0 以为是 | 实际是 |
+|---|---|---|
+| `__act=banner_list` | 开屏横幅广告 | BLG 夺冠、使命召唤、鬼武者评测等**官方运营轮播**，全部指向站内 tid |
+| `__act=recmd_topic` | 信息流推广帖 | 站内推荐话题（`type=3`），指向站内 tid |
+| `__act=get_event_app` | 活动入口广告 | 原神 7.2 签到等**官方活动** |
+
+清空它们只会让官方运营位消失，对商业广告毫无作用。真正的广告走穿山甲 SDK 和百度联盟，不经过 `app_inter`。v1.1 已下线该脚本，只保留域名分流（`scripts/nga-ad.js` 留存但已停用，仅防旧地址 404）。
 
 ## 各自做了什么
 
 ### douban-ad.plugin
 
-**分流拦截（8 条）**
+**豆瓣专属**
 
-- `erebor.douban.com` — 豆瓣广告点击跳转中间页 + 曝光计数
-- `img*.doubanio.com/view/dale-online/` — 豆瓣广告图床路径（`dale_ad`），与正常头像 `icon/`、帖子图 `view/group_topic/` 不重叠，不会误删正文图
-- `webcast-open.douyin.com` — 穿山甲配置拉取
-- `lf-cdn-tos.bytescm.com/obj/static/ad/` — 字节 playable 广告 SDK
-- `unet.quark.cn` — 穿山甲广告展示监测
-- `open.e.kuaishou.com` — 快手联盟曝光监测
-- `h-adashx4bc.ut.taobao.com`、`userlink.alicdn.com` — 阿里 adash 埋点与 deeplink
-- `dg.k.jd.com`、`orbit.jd.com` — 京东京准通 / 开普勒落地
+- `erebor.douban.com` — 广告点击跳转中间页与曝光计数
+- `img*.doubanio.com/view/dale-online/` — 广告图床路径 `dale_ad`，与头像 `icon/`、帖子图 `view/group_topic/` 不重叠
 
-**接口改写（2 条脚本）**
+**接口改写（脚本）**
 
-拦截上述域名只能去掉素材和跳转，信息流里那张广告卡片还在（显示灰块）。所以用 `http-response` 脚本把下面接口的返回体改成 `{}`：
+把下列接口返回体改成 `{}`，这是去掉信息流广告卡片的唯一办法，因为它们的数据来自豆瓣自家 API：
 
-- `frodo.douban.com/api/v2/home_ads`
-- `frodo.douban.com/api/v2/home_banner`
-- `frodo.douban.com/api/v2/erebor/feed_ad`
-- `frodo.douban.com/api/v2/group/{id}/ad`
-- `api.douban.com/v2/app_ads/splash_*`（statistics / preload / bid / show）
+- `frodo.douban.com/api/v2/home_ads`、`home_banner`、`erebor/feed_ad`、`group/{id}/ad`
+- `api.douban.com/v2/app_ads/splash_*`
 
-实测依据：一次开屏竞价里豆瓣同时向穿山甲（site 5003518）、优量汇（app 1106295950）、京准通（site 147296）询价，信息流广告 `unit_name` 为 `dale_group_topics_feed`，曝光监测走快手联盟。
+实测依据：开屏竞价里同时出现穿山甲（site 5003518）、优量汇（app 1106295950）、京准通（site 147296）；信息流广告 `unit_name` 为 `dale_group_topics_feed`，曝光监测走快手联盟。
 
 ### nga-ad.plugin
 
-NGA 的广告不走独立域名，而是自家 `nuke.php?__lib=app_inter` 下发，所以分流只能挡住第三方追踪，真正的广告位必须改接口返回：
+纯分流，不含脚本。拦截百度联盟、穿山甲、优量汇、快手联盟、京准通、阿里妈妈，外加 NGA 实测到的优酷 DSP、腾讯设备 ID、UC 广告策略。
 
-- `__act=banner_list` — 开屏 / 横幅
-- `__act=recmd_topic` — 信息流推广帖
-- `__act=get_event_app` — 活动入口
+`m.baidu.com/baidu.php` 这条特别重要：实测广告点击会经它 302 到 App Store，而它是**明文 http**，所以 `URL-REGEX` 不需要 MITM 就能生效。
 
-`static_file_list` 故意未处理，它可能是正常静态资源清单。
+## 排查：规则到底有没有生效
 
-## 注意事项
+最容易被忽略的两点：
 
-1. **必须开启 MITM 并安装证书**，否则 HTTPS 的 URL 规则与脚本都不会生效。
-2. `img*.doubanio.com` 是前缀通配。若 Loon 不识别，改成逐个列 `img1.doubanio.com` 到 `img9.doubanio.com`。
-3. 只 MITM 图床，别写成 `*.doubanio.com`，否则豆瓣所有图片都解密，耗电和延迟明显上升。
-4. 如果首页顶部某个**官方**运营位消失，把 `home_banner` 从 `douban-ad-feed` 的 pattern 里去掉，只留 `home_ads` 与 `feed_ad`。
-5. `apiVersion` / `date` 字段用于识别版本，改动插件后请同步更新 `date`。
-6. GitHub raw 在国内可能不稳定，加载慢或失败时改用镜像加速地址，或手动导入插件文件。
-7. 这些域名属于**会被下架/更换**类型，广告 SDK 域名两三个月就可能变一轮，失效属于正常现象，重新抓包即可。
+1. **`URL-REGEX` 匹配 https 必须 MITM**。没开 MITM 或证书未信任时，所有 https 的 URL 规则静默失效，表现就是"插件装了但没用"。
+2. **验证方法**：抓包看目标域名返回码。如果 `lf-cdn-tos.bytescm.com/obj/static/ad/...` 还能返回 200/404，说明请求真的发出去了，规则没命中；被 REJECT 时请求根本不会出现在 HAR 里。
+
+如果域名规则和脚本都不生效，先检查是不是被前面的 `GEOIP,CN,DIRECT` 或 `FINAL` 规则抢了匹配，Loon 是从上往下第一条命中为止。
 
 ## 明确不拦截的域名
 
@@ -79,9 +79,17 @@ NGA 的广告不走独立域名，而是自家 `nuke.php?__lib=app_inter` 下发
 | `amonsul.douban.com` | 豆瓣监控/风控上报，拦截可能触发异常监测 |
 | `dypnsapi-dualstack.aliyuncs.com` | 阿里云一键登录 |
 | `1253747176.trtcube-license.cn` | 腾讯视频云 license |
-| `119.29.29.90` / `.96` | DNSPod HTTPDNS，拦截后整机解析变慢 |
-| `www.jd.com/error2.aspx` | 广告跳转失败的错误页，被动结果，reject 无意义 |
+| `119.29.29.90` / `.96` / `.98` | DNSPod HTTPDNS，拦截后整机解析变慢 |
+| `frodo.douban.com` 非广告接口 | 豆瓣正常业务 API |
 | `img*.doubanio.com` 非 `dale-online` 路径 | 头像、帖子正文图 |
+| `ngabbs.com` 的 `app_inter` 接口 | 官方运营内容，见上文修正说明 |
+
+## 已知限制
+
+1. `pangle.io`、`pangolin-sdk-toutiao.com`、`pglstatp-toutiao.com` 在海外 DNS 下解析不到记录，本机无法验证其存活。域名规则为空转，写进去无副作用，境内网络下若存在则立即生效。
+2. 广告 SDK 域名两三个月会换一轮，尤其字节系。失效属于正常现象，重新抓包即可。
+3. 穿山甲 SDK 会**缓存**已下发的广告素材与配置，刚装规则后开屏可能还会出现几次，等缓存过期。
+4. 广告域名清单里的联盟域名来自行业通用集合 + 本次实测交叉验证，未逐一在 NGA/豆瓣客户端里复现。
 
 ## 免责
 

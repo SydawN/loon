@@ -2,22 +2,62 @@
 
 [Plugin]
 name=NGA 去广告
-desc=静默化 NGA 的开屏横幅、信息流推广帖与活动入口接口，并拦截优酷 DSP、腾讯设备 ID、UC 广告策略、字节 playable 广告 SDK 等追踪域名。
+desc=拦截穿山甲、优量汇、快手联盟、百度联盟、京准通等广告 SDK 与点击跳转域名。app_inter 的 banner_list / recmd_topic / get_event_app 实测均为官方运营内容，本插件不再改写。
 author=SydawN
 icon=https://img.nga.cn/favicon.ico
-apiVersion=1.0
+apiVersion=1.1
 homepage=https://github.com/SydawN/loon
 date=2026-11-22
 
 [Rule]
-# ---- 第三方广告追踪（NGA App 内实测抓包）----
-DOMAIN-SUFFIX,youku-dsp.youku.com,REJECT
+# ---- 百度联盟点击跳转（实测为 http 明文，无需 MITM）----
+URL-REGEX,^http://m\.baidu\.com/baidu\.php,REJECT
+DOMAIN-SUFFIX,mobads.baidu.com,REJECT
+DOMAIN-SUFFIX,mobads-logs.baidu.com,REJECT
+DOMAIN-SUFFIX,cpro.baidu.com,REJECT
+DOMAIN-SUFFIX,pos.baidu.com,REJECT
+DOMAIN-SUFFIX,cbjs.baidu.com,REJECT
+DOMAIN-SUFFIX,union.baidu.com,REJECT
+DOMAIN-SUFFIX,eclick.baidu.com,REJECT
+DOMAIN-SUFFIX,nsclick.baidu.com,REJECT
+DOMAIN-SUFFIX,entry.baidu.com,REJECT
+DOMAIN-SUFFIX,hmma.baidu.com,REJECT
+DOMAIN-SUFFIX,mtj.baidu.com,REJECT
+DOMAIN-SUFFIX,cpro.baidustatic.com,REJECT
+DOMAIN-SUFFIX,dup.baidustatic.com,REJECT
+
+# ---- 穿山甲 / 巨量引擎（NGA aid=5000546）----
+DOMAIN-SUFFIX,pangle.io,REJECT
+DOMAIN-SUFFIX,gromore.cn,REJECT
+DOMAIN-SUFFIX,oceanengine.com,REJECT
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT
+DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
+
+# ---- 优量汇 / 腾讯广告 ----
+DOMAIN-SUFFIX,gdt.qq.com,REJECT
+DOMAIN,e.qq.com,REJECT
+DOMAIN-SUFFIX,pgdt.gtimg.cn,REJECT
+DOMAIN-SUFFIX,adsmogo.com,REJECT
 DOMAIN,tid.m.qq.com,REJECT
+
+# ---- 快手联盟 ----
+DOMAIN-SUFFIX,open.e.kuaishou.com,REJECT
+DOMAIN-SUFFIX,kuaishouzt.com,REJECT
+
+# ---- 京东京准通 / 开普勒 ----
+DOMAIN-SUFFIX,jzt.jd.com,REJECT
+DOMAIN-SUFFIX,dg.k.jd.com,REJECT
+DOMAIN-SUFFIX,orbit.jd.com,REJECT
+
+# ---- 阿里妈妈 ----
+DOMAIN-SUFFIX,tanx.com,REJECT
+DOMAIN-SUFFIX,alimama.com,REJECT
+DOMAIN-SUFFIX,mmstat.com,REJECT
+
+# ---- NGA 实测第三方追踪 ----
+DOMAIN-SUFFIX,youku-dsp.youku.com,REJECT
 DOMAIN,content-understand-strategy.sm.cn,REJECT
 URL-REGEX,^https://lf-cdn-tos\.bytescm\.com/obj/static/ad/,REJECT
 
-[Script]
-nga-ad = type=http-response,pattern=^https://ngabbs\.com/nuke\.php\?__lib=app_inter,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-ad.js
-
 [MITM]
-hostname = %APPEND% ngabbs.com, lf-cdn-tos.bytescm.com
+hostname = %APPEND% lf-cdn-tos.bytescm.com

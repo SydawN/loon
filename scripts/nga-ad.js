@@ -1,26 +1,19 @@
 /**
- * NGA App 去广告脚本
- * 适用：Loon / Surge / Quantumult X (http-response)
+ * [已停用 / DEPRECATED] —— 2026-11-22，v1.1 起 nga-ad.plugin 不再引用本文件
  *
- * 匹配接口（__lib=app_inter 下的三个广告相关 act）：
- *   banner_list      开屏 / 横幅广告
- *   recmd_topic      信息流推广帖
- *   get_event_app    活动入口图标
+ * 停用原因：
+ * 对 129 条真实抓包逐条解析后发现，nga-ad.plugin v1.0 改写的三个接口
+ * 返回的并不是商业广告，而是 NGA 官方运营内容：
  *
- * 注意：static_file_list 不要动，它可能是正常静态资源清单，
- *      拦截后 App 会缺图或白屏。
+ *   banner_list     -> BLG 夺冠、使命召唤、鬼武者评测等官方轮播（指向站内 tid）
+ *   recmd_topic     -> 站内推荐话题（type=3，指向站内 tid）
+ *   get_event_app   -> 原神 7.2 签到活动等官方活动入口
+ *
+ * 清空这三个接口会误伤官方运营位，而真正的商业广告（携程等）走的是
+ * 穿山甲 SDK 与百度联盟，不经过 app_inter。因此本脚本下线，
+ * 相关拦截改为 nga-ad.plugin 的域名分流规则。
+ *
+ * 文件保留仅为避免旧订阅地址 404。请勿再启用。
  */
 
-const url = $request.url;
-
-if (/__act=(banner_list|recmd_topic|get_event_app)/.test(url)) {
-  $done({
-    body: JSON.stringify({ return: 1, result: [] }),
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-    },
-  });
-} else {
-  // 其他 app_inter 接口放行
-  $done({});
-}
+$done({});
