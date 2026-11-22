@@ -1,13 +1,13 @@
-#!name=豆瓣去广告 v12
-#!desc=v12 终于找到开屏广告的老家：frodo.douban.com/api/v2/feature_switch。106 号包实测这个 46KB 配置接口的响应里直接带着 splash_sdk_info，一条京准通开屏（jztSplashSDK|147296|2033281326|267175，duration=5000，正好对上截图里的"跳过 4"）。也就是说开屏根本不走 splash_bid，配置接口每次冷启动把广告塞进来，所以 bid 回 {} 没用、删 App 没用、断网也能播（配置是磁盘缓存的）。本版用一个只改这一个字段的脚本把它清成空数组。注意：这是全插件唯一需要 MITM(仅 frodo.douban.com) 的一版，脚本只动 feature_switch，其余请求原样放行；万一出现登录或内容异常，把 [MITM] 段注释掉即可回到 v11 的纯策略模式。
+#!name=豆瓣去广告 v13
+#!desc=v13 在 v12 基础上吸收了公开规则里我们漏掉的部分：fmz200/blockAds 与 yyn618/JS_Ad 的豆瓣段里，ad.doubanio.com、erebor 的子域、api.douban.com/<hash>/common_ads、frodo 的 movie/banner 这四条我们没有，已补齐；erebor 也从精确域升级成后缀域。开屏的核心修复仍在 v12：feature_switch 响应里 splash_sdk_info 是京准通内嵌开屏（jztSplashSDK|147296|2033281326|267175，duration=5000），只能靠脚本清空，公开的三套规则没有任何一套覆盖它。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
 #!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
 #!tag = 去广告, 豆瓣
-#!date=2026-11-22 18:25:00
-#!version=12
+#!date=2026-11-22 18:40:00
+#!version=13
 
 [Script]
 # 清空 feature_switch 里的开屏广告配置（只改 splash_sdk_info 一个字段）
@@ -18,10 +18,15 @@ hostname = frodo.douban.com
 
 [Rule]
 # ============ 豆瓣自有广告系统 Dale / Erebor / Amonsul ============
-DOMAIN, erebor.douban.com, REJECT
+# 公开规则里是 DOMAIN-SUFFIX erebor.douban.com（含 count / redirect 等子域），v12 只写了精确域，这里补齐
+DOMAIN-SUFFIX, erebor.douban.com, REJECT
+# fmz200 的 blockAds 里单独列了 ad.doubanio.com，我们此前没有
+DOMAIN-SUFFIX, ad.doubanio.com, REJECT
 
 # 开屏四件套（splash_bid / preload / show / statistics），策略层直接回 200 + {}，无需解密
 URL-REGEX, ^https://api\.douban\.com/v2/app_ads/, REJECT-DICT
+# 老接口形态：api.douban.com/<hash>/common_ads?xxx（yyn618 与 fmz200 都有这条，我们漏了）
+URL-REGEX, ^https://api\.douban\.com/[a-zA-Z0-9]+/.*common_ads, REJECT-DICT
 
 # 广告图（首页横幅、开屏静态图都在这个路径下）
 # v10 起改 REJECT：REJECT-IMG 返回的 1×1 像素会让 App 判成"图片有效"，反而把广告位撑住
@@ -31,6 +36,8 @@ URL-REGEX, ^https://img\d+\.doubanio\.com/view/dale-online/, REJECT
 URL-REGEX, ^https://frodo\.douban\.com/api/v2/home_banner, REJECT-DICT
 URL-REGEX, ^https://frodo\.douban\.com/api/v2/erebor/feed_ad, REJECT-DICT
 URL-REGEX, ^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad, REJECT-DICT
+# 电影页顶部横幅，公开规则两条都写了，我们此前没有
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/movie/.*banner, REJECT-DICT
 
 # home_ads 故意不动，原生就是 {"cache_duration":7200}
 
