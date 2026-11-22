@@ -46,36 +46,13 @@
     return reply({});
   }
 
-  // ---- 开屏：splash_bid 必须回完整的「无 SDK 广告」结构 ----
-  // 84 号包实测，服务器真实的「没广告」应答是这 106 字节：
-  //   {"sdk_win":0,"sdk_id":"","sdk_ad_info":null,"backup_sdk_id":"","backup_ad_info":null,"backend_duration":6}
-  // 裸 {} 缺了 sdk_win / backup_sdk_id，App 无法判定「没有备选 SDK 广告」，
-  // 会退到优量汇（gdtSplashSDK）的本地缓存创意继续开屏。这里按原结构补全。
-  if (/\/v2\/app_ads\/splash_bid/.test(url)) {
-    return reply({
-      sdk_win: 0,
-      sdk_id: "",
-      sdk_ad_info: null,
-      backup_sdk_id: "",
-      backup_ad_info: null,
-      backend_duration: 0
-    });
-  }
-
-  // ---- 开屏其余三条（preload / show / statistics）----
-  // show 的请求体里带着 preload_ads（豆瓣自有预加载队列）和 sdk_list（各联盟已缓存的创意），
-  // 说明开屏是在启动瞬间拿本地素材展示的，服务端应答拦不住已缓存的那几条。
-  if (/\/v2\/app_ads\//.test(url)) {
-    return reply({});
-  }
+  // ---- 开屏四件套改由策略层 REJECT-DICT 处理，本脚本不再接管 ----
+  // api.douban.com 同时承载账号/登录接口，为降低「登录不上」的风险，
+  // 本版不对该域名开启 MITM，也不在这里做任何改写。
 
   // ---- amonsul 广告总开关 ----
-  // check2 返回 {"on":1,"num_limit":200,"time_limit":30}，on=1 表示广告功能开启。
-  // 置 0 让 SDK 认为广告关闭，广告接口可能整个不再请求。
-  // 这条没有历史实测支撑（14 号包里只有 on=1 的样子），若发现首页模块缺失就删掉本段。
-  if (/amonsul\.douban\.com\/check2/.test(url)) {
-    return reply({ on: 0, num_limit: 0, time_limit: 0 });
-  }
+  // 本版原样放行、不改写、不拦截。上一版把它改成 {"on":0,...} 是唯一一条
+  // 没有实测支撑的改动，已回滚。
 
   $done({});
 })();
