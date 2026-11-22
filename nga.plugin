@@ -9,6 +9,14 @@
 #!date=2026-11-22 15:52:00
 
 [Rule]
+# ============ 最优先：精确拦掉 js_domainConf.js ============
+# 必须排在所有 DOMAIN 规则之前。Loon 按顺序命中第一条，之前它排在
+# DOMAIN, img4.nga.178.com, DIRECT 后面，被抢先放行，结果连接老图床挂到超时：
+#   77 号包 0ms（当时未放行，瞬时失败）
+#   80 号包 8644ms（被 DIRECT 放出去，一直挂着）
+# 同一个「顺序被抢」的错误，前面在 GEOIP,CN,DIRECT 上已经踩过一次。
+URL-REGEX, ^https?://img4\.nga\.178\.com/common_res/js_domainConf\.js, REJECT
+
 # ============ 第零层：强制放行 NGA 主站 ============
 # 为什么必须有这条：static_file_list（开屏配置下发）就在 ngabbs.com/nuke.php 上。
 # 一旦被别的插件（如 blockAds 里针对 NGA 的后缀规则）抢先 REJECT，请求就不出网，
@@ -19,15 +27,14 @@ DOMAIN, ngabbs.com, DIRECT
 DOMAIN, nga.178.com, DIRECT
 DOMAIN, img.nga.cn, DIRECT
 DOMAIN, img4.nga.cn, DIRECT
-DOMAIN, img4.nga.178.com, DIRECT
 
 # ============ 零点半层：干掉启动阻塞源（最优先）============
 # js_domainConf.js 是本次启动慢的头号真凶。所有抓包里这条都是 status:0、size:0，
 # 说明 img4.nga.178.com 这个老图床早就不提供该文件了。连接会一直挂到 iOS 超时：
 #   68~73 号包  0ms（未被放行，瞬时失败）
 #   75 号包     5367ms（被上一版 DIRECT 规则放出去，一直挂着）
-# 两种都让 App 卡在启动页。必须精确拦这个路径并立刻返回，同时保留域名用于帖子图片。
-URL-REGEX, ^https?://img4\.nga\.178\.com/common_res/js_domainConf\.js, REJECT
+# 这条规则已提到 [Rule] 最前面（见文件开头），此处不再重复。
+# 注意不要再给 img4.nga.178.com 加 DOMAIN ... DIRECT，那会让本规则失效。
 
 # 友盟统计：单条上报挂 2129~2920ms，纯后台埋点，拦掉不影响任何功能
 DOMAIN-SUFFIX, umeng.com, REJECT
