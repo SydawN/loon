@@ -137,6 +137,15 @@ DOMAIN-SUFFIX, 66mobi.com, REJECT
 DOMAIN-SUFFIX, kuiniuca.com, REJECT
 
 [Script]
+# ---- 请求阶段短路：根本不出网，直接本地编响应（省 400~700ms/条）----
+# 与下面的 http-response 是两回事：http-response 要先出网拿到真响应才改写，省不了时间
+# 实测这几条合计吃掉 3909ms：get_ads 712、settings 457+429、gdt_mview 412+287、
+# get_event_app 524、banner_list 424+108、recmd_topic 353+203
+# 注意 must 放在 [Rule] 之前生效——Loon 的 http-request 在策略路由前执行
+http-request ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk/(get_ads|settings) script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-stub.js, timeout=10, tag=穿山甲本地短路
+http-request ^https://mi\.gdt\.qq\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-stub.js, timeout=10, tag=优量汇本地短路
+http-request ^https://ngabbs\.com/nuke\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-stub.js, timeout=10, tag=NGA广告位本地短路
+
 # ---- 开屏配置：改成「过期窗口 + 假素材」----
 # 实测服务端 intro001 返回空数组，空数组会让 App 回退内置默认开屏（这才是开屏广告清不掉的根因）
 # 所以给一个 type=com.dn 的假配置指向 427 字节小图，App 正常走开屏流程但画面几乎空白
