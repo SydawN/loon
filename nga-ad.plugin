@@ -109,6 +109,9 @@ DOMAIN-SUFFIX, zlinkurl.cn, REJECT
 # ---- 京东京准通广告素材 CDN（实测 img1.360buyimg.com/pop/jfs/*.jpg）---
 DOMAIN-SUFFIX, 360buyimg.com, REJECT
 
+# ---- 淘宝闪购 / 饿了么 开屏素材库（实测 1080x1920 jpeg，路径 ad-performance-advertiser）---
+DOMAIN-SUFFIX, qhzl.com.cn, REJECT
+
 [Script]
 # 把 user&__act=detail 响应里的 adfree 改成 1
 http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
