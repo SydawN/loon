@@ -1,20 +1,21 @@
-#!name=DO-1
+#!name=DO-2
 #!desc=Personal ruleset
 #!author=SydawN
-#!version=1
-#!date=2026-11-22 20:45:00
+#!version=2
+#!date=2026-11-22 21:00:00
 
 [Rewrite]
-^https://frodo\.douban\.com/api/v2/feature_switch response-body-json-del splash_sdk_info
-^https://api\.douban\.com/v2/app_ads/ reject-dict
-^https://api\.douban\.com/[a-zA-Z0-9]+/.*common_ads reject-dict
-^https://img\d+\.doubanio\.com/view/dale-online/ reject
-^https://frodo\.douban\.com/api/v2/home_banner reject-dict
-^https://frodo\.douban\.com/api/v2/erebor/feed_ad reject-dict
-^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad reject-dict
-^https://frodo\.douban\.com/api/v2/movie/.*banner reject-dict
+response if ${url} ~= /^https?:\/\/frodo\.douban\.com\/api\/v2\/feature_switch/i then response.json.jq("del(.splash_sdk_info)")
 
 [Rule]
+URL-REGEX, ^https://api\.douban\.com/v2/app_ads/, REJECT-DICT
+URL-REGEX, ^https://api\.douban\.com/[a-zA-Z0-9]+/.*common_ads, REJECT-DICT
+URL-REGEX, ^https://img\d+\.doubanio\.com/view/dale-online/, REJECT
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/home_banner, REJECT-DICT
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/erebor/feed_ad, REJECT-DICT
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad, REJECT-DICT
+URL-REGEX, ^https://frodo\.douban\.com/api/v2/movie/.*banner, REJECT-DICT
+
 DOMAIN-SUFFIX, erebor.douban.com, REJECT
 DOMAIN-SUFFIX, ad.doubanio.com, REJECT
 
