@@ -1,0 +1,161 @@
+#!name=NGA 去广告（合并版）
+#!desc=合并原先三个插件：nga-ad（联盟喂假数据）+ nga-purge（清空开屏配置）+ nga-fast（本地快速返回）。三层协同：① 统计/配置类请求本地立即返回，省掉 DNS+连接+TLS 等待；② 真正拉广告的接口放行后由脚本改写成「服务端无广告填充」；③ 加密或不可改写的 SDK 与素材域名直接拦截。装这一个就够，另外三个请停用。
+#!author=SydawN
+#!homepage=https://github.com/SydawN/loon
+#!raw-url=https://github.com/SydawN/loon/raw/main/nga.plugin
+#!icon=https://img.nga.cn/favicon.ico
+#!category=SydawN 的插件
+#!tag = 去广告, NGA
+#!date=2026-11-22 15:45:00
+
+[Rule]
+# ============ 第一层：本地立即返回（不出网，0ms）============
+# 实测耗时：穿山甲 stats/batch 8 次各 130ms、快手 config 24710 字节 148ms
+# 这些是统计与配置，内容对本机没用，本地给空对象即可，省掉 DNS+连接+TLS 往返
+URL-REGEX, ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk/stats, REJECT-DICT
+URL-REGEX, ^https://open\.e\.kuaishou\.com/rest/e/v3/open/config, REJECT-DICT
+URL-REGEX, ^https://open\.e\.kuaishou\.com/rest/e/v3/open/logBatch, REJECT-DICT
+
+# ============ 第二层：放行给脚本改应答（必须排在所有 REJECT 之前）============
+# 任何后缀 REJECT 都会把它们覆盖成拦截，脚本就永远不执行了（这坑踩过两次）
+DOMAIN, mi.gdt.qq.com, DIRECT
+DOMAIN, api-access.pangolin-sdk-toutiao.com, DIRECT
+DOMAIN, is.snssdk.com, DIRECT
+DOMAIN, open.e.kuaishou.com, DIRECT
+
+# ============ 第三层：加密 SDK / 不可改写，只能拦 ============
+# 一号联盟 1rtb：加密二进制包（实测 3594~8096 字节），改不了内容
+DOMAIN, sdk.1rtb.net, REJECT-DICT
+DOMAIN-SUFFIX, 1rtb.net, REJECT-DICT
+# 1rtb 自建 DoH：走 119.29.29.98/d?dn=... 解析 sdk.1rtb.net 后直连 IP，域名规则因此失效
+# 断掉这个 IP 它就解析不出地址。若发现其他 App 网络异常，注释掉下面这行
+IP-CIDR, 119.29.29.98/32, REJECT
+
+# ============ 第四层：素材域名（给 1×1 像素，不给 404）============
+# 404 会被 SDK 判成「网络出错」而降级播本地缓存，1×1 像素则视为「加载完了但没内容」
+DOMAIN-SUFFIX, iqiyipic.com, REJECT-IMG
+DOMAIN-SUFFIX, douyinpic.com, REJECT-IMG
+DOMAIN-SUFFIX, byteimg.com, REJECT-IMG
+DOMAIN-SUFFIX, 360buyimg.com, REJECT-IMG
+DOMAIN-SUFFIX, qhzl.com.cn, REJECT-IMG
+DOMAIN-SUFFIX, gdtimg.com, REJECT-IMG
+DOMAIN-SUFFIX, a.yximgs.com, REJECT-IMG
+
+# ============ 第五层：其余广告域名直接拦 ============
+# 多多买菜（拼多多系）点击上报
+DOMAIN-SUFFIX, ad.ddxq.mobi, REJECT
+DOMAIN-SUFFIX, ddxq.mobi, REJECT
+
+# 优量汇素材与联盟角标（开屏会加载 ylg_logo.png）
+DOMAIN, sigcdn.oss-cn-beijing.aliyuncs.com, REJECT
+
+# 百度联盟（点击跳转为 http 明文，无需 MITM）
+URL-REGEX, ^http://m\.baidu\.com/baidu\.php, REJECT
+DOMAIN-SUFFIX, mobads.baidu.com, REJECT
+DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
+DOMAIN-SUFFIX, cpro.baidu.com, REJECT
+DOMAIN-SUFFIX, pos.baidu.com, REJECT
+DOMAIN-SUFFIX, cbjs.baidu.com, REJECT
+DOMAIN-SUFFIX, union.baidu.com, REJECT
+DOMAIN-SUFFIX, eclick.baidu.com, REJECT
+DOMAIN-SUFFIX, nsclick.baidu.com, REJECT
+DOMAIN-SUFFIX, entry.baidu.com, REJECT
+DOMAIN-SUFFIX, hmma.baidu.com, REJECT
+DOMAIN-SUFFIX, mtj.baidu.com, REJECT
+DOMAIN-SUFFIX, cpro.baidustatic.com, REJECT
+DOMAIN-SUFFIX, dup.baidustatic.com, REJECT
+
+# 穿山甲 / 巨量引擎（NGA aid=5000546）
+DOMAIN-SUFFIX, pangle.io, REJECT
+DOMAIN-SUFFIX, gromore.cn, REJECT
+DOMAIN-SUFFIX, oceanengine.com, REJECT
+DOMAIN-SUFFIX, pglstatp-toutiao.com, REJECT
+
+# 优量汇 / 腾讯广告
+DOMAIN, e.qq.com, REJECT
+DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
+DOMAIN-SUFFIX, adsmogo.com, REJECT
+DOMAIN, tid.m.qq.com, REJECT
+DOMAIN, tdid.m.qq.com, REJECT
+DOMAIN-SUFFIX, i.gtimg.cn, REJECT
+
+# mobrtb（开屏素材 cdn.mobrtb.com/whale/static/*.jpeg 720x1280）
+DOMAIN-SUFFIX, mobrtb.com, REJECT
+DOMAIN-SUFFIX, 52qumao.com, REJECT
+DOMAIN-SUFFIX, microengine.cn, REJECT
+
+# 亿典广告平台（开屏曝光上报 api.ocpx.ydmob.com）
+DOMAIN-SUFFIX, ydmob.com, REJECT
+
+# 快手联盟
+DOMAIN-SUFFIX, kuaishouzt.com, REJECT
+DOMAIN-SUFFIX, ad.partner.gifshow.com, REJECT
+
+# 京东京准通 / 开普勒
+DOMAIN-SUFFIX, jzt.jd.com, REJECT
+DOMAIN-SUFFIX, dg.k.jd.com, REJECT
+DOMAIN-SUFFIX, orbit.jd.com, REJECT
+
+# 阿里妈妈
+DOMAIN-SUFFIX, tanx.com, REJECT
+DOMAIN-SUFFIX, alimama.com, REJECT
+DOMAIN-SUFFIX, mmstat.com, REJECT
+
+# 第三方追踪
+DOMAIN-SUFFIX, youku-dsp.youku.com, REJECT
+DOMAIN, content-understand-strategy.sm.cn, REJECT
+URL-REGEX, ^https://lf-cdn-tos\.bytescm\.com/obj/static/ad/, REJECT
+
+# 穿山甲素材 CDN
+DOMAIN-SUFFIX, douyinstatic.com, REJECT
+DOMAIN-SUFFIX, ad.toutiao.com, REJECT
+DOMAIN-SUFFIX, ibytedtos.com, REJECT
+
+# 美团广告曝光监测（campaign_name=美食-必吃榜-付费-联盟ios-图片）
+DOMAIN-SUFFIX, apimobile.meituan.com, REJECT
+
+# 滴滴广告点击上报（快手联盟渠道，UA=kwai-ios）
+DOMAIN, gungnir.xiaojukeji.com, REJECT
+
+# 广告星 adstarcharm 竞价失败上报
+DOMAIN-SUFFIX, adstarcharm.com, REJECT
+
+# 微博广告图床
+DOMAIN-SUFFIX, ads.sinaimg.cn, REJECT
+
+# 字节 deeplink SDK（settings 含 deeplink_domains、pasteboard 配置）
+DOMAIN-SUFFIX, ugsdk.cn, REJECT
+DOMAIN-SUFFIX, zlinkurl.cn, REJECT
+
+# 穿山甲曝光上报 tr.byteurl.cn
+DOMAIN-SUFFIX, byteurl.cn, REJECT
+
+# 腾讯 SSP 竞价上报（关掉等于不让 SDK 完成竞价确认）
+DOMAIN-SUFFIX, 66mobi.com, REJECT
+
+# 葵牛广告 SDK（加密 POST）
+DOMAIN-SUFFIX, kuiniuca.com, REJECT
+
+[Script]
+# ---- 开屏配置：改成「过期窗口 + 假素材」----
+# 实测服务端 intro001 返回空数组，空数组会让 App 回退内置默认开屏（这才是开屏广告清不掉的根因）
+# 所以给一个 type=com.dn 的假配置指向 427 字节小图，App 正常走开屏流程但画面几乎空白
+# EXTRA_ADS_RULES 同理：清成 [] 会被当「无配置」回退默认，改成 start/end 均为 0 的过期窗口才会被跳过
+http-response ^https://ngabbs\.com/nuke\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-purge.js, requires-body=true, timeout=60, tag=NGA清空开屏配置
+
+# ---- adfree 字段伪装（只影响「付费会员可免除广告」文案）----
+http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
+
+# ---- 三个联盟「喂假数据」----
+# 核心：无论原响应是 200/403/404，一律返回 200 + 标准「无填充」字段
+# 404 会被 SDK 判成网络错误而降级播缓存，这就是为什么之前拦得越干净广告越顽固
+http-response ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/mediation script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲竞价无填充
+http-response ^https://api-access\.pangolin-sdk-toutiao\.com/api/ad/union/sdk script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲无填充
+http-response ^https://is\.snssdk\.com/api/ad/union/sdk script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=穿山甲无填充
+http-response ^https://mi\.gdt\.qq\.com/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=优量汇无填充
+http-response ^https://open\.e\.kuaishou\.com/rest/e/v3/open/univ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/adsense.js, requires-body=true, timeout=60, tag=快手联盟无填充
+
+[MITM]
+hostname = ngabbs.com, lf-cdn-tos.bytescm.com, img.nga.cn, img4.nga.cn, api-access.pangolin-sdk-toutiao.com, is.snssdk.com, mi.gdt.qq.com, open.e.kuaishou.com
+
+[End of file.]
