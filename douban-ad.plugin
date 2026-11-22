@@ -1,25 +1,22 @@
-#!name=DB-13
+#!name=DO-1
 #!desc=Personal ruleset
 #!author=SydawN
-#!version=13
-#!date=2026-11-22 18:50:00
+#!version=1
+#!date=2026-11-22 20:45:00
 
-[Script]
-s1 = type=http-response,pattern=^https://frodo\.douban\.com/api/v2/feature_switch,requires-body=1,max-size=131072,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/s1.js
-
-[MITM]
-hostname = frodo.douban.com
+[Rewrite]
+^https://frodo\.douban\.com/api/v2/feature_switch response-body-json-del splash_sdk_info
+^https://api\.douban\.com/v2/app_ads/ reject-dict
+^https://api\.douban\.com/[a-zA-Z0-9]+/.*common_ads reject-dict
+^https://img\d+\.doubanio\.com/view/dale-online/ reject
+^https://frodo\.douban\.com/api/v2/home_banner reject-dict
+^https://frodo\.douban\.com/api/v2/erebor/feed_ad reject-dict
+^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad reject-dict
+^https://frodo\.douban\.com/api/v2/movie/.*banner reject-dict
 
 [Rule]
 DOMAIN-SUFFIX, erebor.douban.com, REJECT
 DOMAIN-SUFFIX, ad.doubanio.com, REJECT
-URL-REGEX, ^https://api\.douban\.com/v2/app_ads/, REJECT-DICT
-URL-REGEX, ^https://api\.douban\.com/[a-zA-Z0-9]+/.*common_ads, REJECT-DICT
-URL-REGEX, ^https://img\d+\.doubanio\.com/view/dale-online/, REJECT
-URL-REGEX, ^https://frodo\.douban\.com/api/v2/home_banner, REJECT-DICT
-URL-REGEX, ^https://frodo\.douban\.com/api/v2/erebor/feed_ad, REJECT-DICT
-URL-REGEX, ^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad, REJECT-DICT
-URL-REGEX, ^https://frodo\.douban\.com/api/v2/movie/.*banner, REJECT-DICT
 
 DOMAIN, api.weibo.com, REJECT
 DOMAIN-SUFFIX, weibo.com, REJECT
@@ -35,8 +32,8 @@ DOMAIN-SUFFIX, beacon.sina.com.cn, REJECT
 DOMAIN-SUFFIX, gdt.qq.com, REJECT
 DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
 DOMAIN-SUFFIX, ugdtimg.com, REJECT
-DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
 DOMAIN-SUFFIX, gdtimg.com, REJECT
+DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
 
 DOMAIN-SUFFIX, pangle.io, REJECT
 DOMAIN-SUFFIX, gromore.cn, REJECT
@@ -48,6 +45,8 @@ DOMAIN-SUFFIX, zijieapi.com, REJECT
 DOMAIN-SUFFIX, pstatp.com, REJECT
 DOMAIN-SUFFIX, douyinpic.com, REJECT
 DOMAIN-SUFFIX, douyinvod.com, REJECT
+DOMAIN, webcast-open.douyin.com, REJECT
+DOMAIN-SUFFIX, bytescm.com, REJECT
 DOMAIN, mssdk.volces.com, REJECT
 
 DOMAIN, dsp-x.jd.com, REJECT
@@ -69,3 +68,6 @@ DOMAIN-SUFFIX, kuaishouzt.com, REJECT
 DOMAIN-SUFFIX, mobads.baidu.com, REJECT
 DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
 DOMAIN-SUFFIX, cpro.baidu.com, REJECT
+
+[MITM]
+hostname = frodo.douban.com
