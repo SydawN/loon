@@ -1,88 +1,52 @@
-#!name=豆瓣去广告 v13
-#!desc=v13 在 v12 基础上吸收了公开规则里我们漏掉的部分：fmz200/blockAds 与 yyn618/JS_Ad 的豆瓣段里，ad.doubanio.com、erebor 的子域、api.douban.com/<hash>/common_ads、frodo 的 movie/banner 这四条我们没有，已补齐；erebor 也从精确域升级成后缀域。开屏的核心修复仍在 v12：feature_switch 响应里 splash_sdk_info 是京准通内嵌开屏（jztSplashSDK|147296|2033281326|267175，duration=5000），只能靠脚本清空，公开的三套规则没有任何一套覆盖它。
+#!name=豆瓣去广告
+#!desc=参照 mist-whisper BlockAds 与 fmz200 blockAds 的写法重写：域名走 [Rule] 整域拒绝，接口与素材走 [Rewrite] 的 reject-dict / reject，不用命名式脚本；仅在 feature_switch 上保留一个旧语法 http-response 脚本清空 splash_sdk_info。
 #!author=SydawN
 #!homepage=https://github.com/SydawN/loon
 #!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
 #!icon=https://www.douban.com/favicon.ico
 #!category=SydawN 的插件
-#!tag = 去广告, 豆瓣
-#!date=2026-11-22 18:40:00
-#!version=13
-
-[Script]
-# 清空 feature_switch 里的开屏广告配置（只改 splash_sdk_info 一个字段）
-douban_splash_config = type=http-response,pattern=^https://frodo\.douban\.com/api/v2/feature_switch,requires-body=1,max-size=131072,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-feature.js
-
-[MITM]
-hostname = frodo.douban.com
+#!tag=去广告, 豆瓣
+#!date=2026-11-22 19:30:00
+#!version=14
 
 [Rule]
-# ============ 豆瓣自有广告系统 Dale / Erebor / Amonsul ============
-# 公开规则里是 DOMAIN-SUFFIX erebor.douban.com（含 count / redirect 等子域），v12 只写了精确域，这里补齐
+# 豆瓣自有广告系统
 DOMAIN-SUFFIX, erebor.douban.com, REJECT
-# fmz200 的 blockAds 里单独列了 ad.doubanio.com，我们此前没有
 DOMAIN-SUFFIX, ad.doubanio.com, REJECT
 
-# 开屏四件套（splash_bid / preload / show / statistics），策略层直接回 200 + {}，无需解密
-URL-REGEX, ^https://api\.douban\.com/v2/app_ads/, REJECT-DICT
-# 老接口形态：api.douban.com/<hash>/common_ads?xxx（yyn618 与 fmz200 都有这条，我们漏了）
-URL-REGEX, ^https://api\.douban\.com/[a-zA-Z0-9]+/.*common_ads, REJECT-DICT
-
-# 广告图（首页横幅、开屏静态图都在这个路径下）
-# v10 起改 REJECT：REJECT-IMG 返回的 1×1 像素会让 App 判成"图片有效"，反而把广告位撑住
-URL-REGEX, ^https://img\d+\.doubanio\.com/view/dale-online/, REJECT
-
-# 首页横幅 / 信息流广告 / 小组页广告
-URL-REGEX, ^https://frodo\.douban\.com/api/v2/home_banner, REJECT-DICT
-URL-REGEX, ^https://frodo\.douban\.com/api/v2/erebor/feed_ad, REJECT-DICT
-URL-REGEX, ^https://frodo\.douban\.com/api/v2/group/[0-9]+/ad, REJECT-DICT
-# 电影页顶部横幅，公开规则两条都写了，我们此前没有
-URL-REGEX, ^https://frodo\.douban\.com/api/v2/movie/.*banner, REJECT-DICT
-
-# home_ads 故意不动，原生就是 {"cache_duration":7200}
-
-# ============ 微博 / 新浪系 ============
+# 微博 / 新浪系（开屏创意来源之一）
 DOMAIN, api.weibo.com, REJECT
 DOMAIN-SUFFIX, weibo.com, REJECT
 DOMAIN-SUFFIX, weibo.cn, REJECT
 DOMAIN-SUFFIX, wbimg.cn, REJECT
 DOMAIN-SUFFIX, weibocdn.com, REJECT
-# v10 起 sinaimg 也改 REJECT：假图会被 SDK 当成下载成功并缓存
 DOMAIN-SUFFIX, sinaimg.cn, REJECT
 DOMAIN-SUFFIX, sax.sina.com.cn, REJECT
 DOMAIN-SUFFIX, saxs.sina.com.cn, REJECT
 DOMAIN-SUFFIX, sinaads.sina.com.cn, REJECT
 DOMAIN-SUFFIX, beacon.sina.com.cn, REJECT
 
-# ============ 优量汇 / 腾讯广告（豆瓣 app id 1106295950）============
-# sdk_list 里的两条常驻缓存创意：红果短剧，8066335912468747 / 7161778301057006
-# 素材分别在 adsmind.ugdtimg.com（视频）和 pgdt.ugdtimg.com（图）
-# v10 关键改动：REJECT-IMG → REJECT。假成功是缓存清不掉的根本原因。
+# 优量汇 / 腾讯广告
 DOMAIN-SUFFIX, gdt.qq.com, REJECT
 DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
 DOMAIN-SUFFIX, ugdtimg.com, REJECT
 DOMAIN-SUFFIX, rdt.tfogc.com, REJECT
-# v11 核心：优量汇真实 CDN 主域。104 号包实测它成功下发了 libpag 渲染内核(JS 45KB + WASM 816KB)，
-# 开屏动画素材就是从 qzs.gdtimg.com 拿的。只封 ugdtimg.com 等于只关了图床，没关正门。
 DOMAIN-SUFFIX, gdtimg.com, REJECT
 
-# ============ 穿山甲 / 巨量（豆瓣 5003518 + NGA 5000546 一起封）============
+# 穿山甲 / 巨量
 DOMAIN-SUFFIX, pangle.io, REJECT
 DOMAIN-SUFFIX, gromore.cn, REJECT
 DOMAIN-SUFFIX, oceanengine.com, REJECT
 DOMAIN-SUFFIX, pangolin-sdk-toutiao.com, REJECT
 DOMAIN-SUFFIX, pangolin-sdk-toutiao1.com, REJECT
 DOMAIN-SUFFIX, pangolin-sdk-toutiao-b.com, REJECT
-# 穿山甲的 get_domains 域名下发接口，就是它把 -b / -toutiao1 这些镜像变出来的
 DOMAIN-SUFFIX, zijieapi.com, REJECT
 DOMAIN-SUFFIX, pstatp.com, REJECT
 DOMAIN-SUFFIX, douyinpic.com, REJECT
 DOMAIN-SUFFIX, douyinvod.com, REJECT
 DOMAIN, mssdk.volces.com, REJECT
 
-# ============ 京东广告 SDK（ansdk / 京准通）============
-# 102 号包实测：dsp-x.jd.com/adx/sdk 与 janapi.jd.com/ansdk/v1/initData 都返回了真实加密体
-# 说明京东广告 SDK 在豆瓣里是活的，之前只拦了 jzt / orbit，这条链路整条没覆盖
+# 京东广告 SDK / 京准通
 DOMAIN, dsp-x.jd.com, REJECT
 DOMAIN, janapi.jd.com, REJECT
 DOMAIN, xlog.jd.com, REJECT
@@ -91,19 +55,42 @@ DOMAIN, mapi.m.jd.com, REJECT
 DOMAIN-SUFFIX, jzt.jd.com, REJECT
 DOMAIN-SUFFIX, orbit.jd.com, REJECT
 
-# ============ 淘宝 / 阿里 ============
+# 淘宝 / 阿里
 DOMAIN, baichuan-sdk.taobao.com, REJECT
 DOMAIN, baichuan-sdk.alicdn.com, REJECT
 DOMAIN-SUFFIX, tanx.com, REJECT
 DOMAIN-SUFFIX, alimama.com, REJECT
 
-# ============ 快手联盟 ============
+# 快手联盟
 DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
 DOMAIN-SUFFIX, kuaishouzt.com, REJECT
 
-# ============ 百度联盟 ============
+# 百度联盟
 DOMAIN-SUFFIX, mobads.baidu.com, REJECT
 DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
 DOMAIN-SUFFIX, cpro.baidu.com, REJECT
 
-[End of file.]
+[Rewrite]
+# 开屏竞价位：splash_bid / splash_show / splash_config，返回 200 + {}
+^https?:\/\/api\.douban\.com\/v2\/app_ads\/splash\w+ reject-dict
+
+# 旧版开屏与通用广告位
+^https?:\/\/api\.douban\.com\/v\d\/app_ads\/ reject-dict
+^https?:\/\/api\.douban\.com\/b.*\/common_ads\?.* reject-dict
+
+# 开屏素材：dale 主路径 + dale_ad/public 子路径，含 qnmob 系 CDN
+^https?:\/\/(?:img|qnmob)3\.doubanio\.com\/view\/dale-online\/dale_ad\/public\/\w+ reject-dict
+^https?:\/\/(?:img|qnmob)\d+\.doubanio\.com\/view\/dale-online\/dale_ad\/ reject
+
+# 首页横幅 / 电影页横幅
+^https?:\/\/frodo\.douban\.com\/api\/v2\/movie\/banner reject
+^https?:\/\/frodo\.douban\.com\/api\/v2\/home_banner reject-dict
+
+# 广告曝光上报
+^https?:\/\/erebor\.douban\.com\/count\/\?ad= reject
+
+[Script]
+http-response ^https:\/\/frodo\.douban\.com\/api\/v2\/feature_switch script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-feature.js, requires-body=true, timeout=60
+
+[MITM]
+hostname = api.douban.com, frodo.douban.com, img*.doubanio.com, qnmob*.doubanio.com, img*.douban.com, erebor.douban.com
