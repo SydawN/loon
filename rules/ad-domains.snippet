@@ -1,0 +1,25 @@
+# 纯分流版广告域名清单（不需要 MITM，复制进 [Rule] 即可）
+# 功能：仅拦截第三方广告 SDK 与埋点，不动 App 自身接口
+# 效果：广告跳转失效、曝光统计中断；开屏与信息流"占位"仍存在
+# 如需彻底干净，请使用仓库根目录的两个 .plugin 插件
+
+# ============ 豆瓣 ============
+DOMAIN,erebor.douban.com,REJECT
+URL-REGEX,^https://img\d+\.doubanio\.com/view/dale-online/,REJECT
+
+DOMAIN,webcast-open.douyin.com,REJECT
+URL-REGEX,^https://lf-cdn-tos\.bytescm\.com/obj/static/ad/,REJECT
+DOMAIN-SUFFIX,unet.quark.cn,REJECT
+
+DOMAIN-SUFFIX,open.e.kuaishou.com,REJECT
+
+DOMAIN,h-adashx4bc.ut.taobao.com,REJECT
+DOMAIN-SUFFIX,userlink.alicdn.com,REJECT
+
+DOMAIN-SUFFIX,dg.k.jd.com,REJECT
+DOMAIN-SUFFIX,orbit.jd.com,REJECT
+
+# ============ NGA ============
+DOMAIN-SUFFIX,youku-dsp.youku.com,REJECT
+DOMAIN,tid.m.qq.com,REJECT
+DOMAIN,content-understand-strategy.sm.cn,REJECT

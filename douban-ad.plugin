@@ -1,0 +1,38 @@
+#!MANAGED-CONFIG https://raw.githubusercontent.com/SydawN/loon/main/douban-ad.plugin interval=86400
+
+[Plugin]
+name=豆瓣去广告
+desc=移除豆瓣 App 开屏、首页横幅与信息流广告；拦截穿山甲、优量汇、快手联盟、京准通、阿里 adash 等广告 SDK 与埋点域名。
+author=SydawN
+icon=https://img9.doubanio.com/favicon.ico
+apiVersion=1.0
+homepage=https://github.com/SydawN/loon
+date=2026-11-22
+
+[Rule]
+# ---- 豆瓣自有广告系统（dale）----
+DOMAIN,erebor.douban.com,REJECT
+URL-REGEX,^https://img\d+\.doubanio\.com/view/dale-online/,REJECT
+
+# ---- 穿山甲（字节 Pangle），site_id 5003518 ----
+DOMAIN,webcast-open.douyin.com,REJECT
+URL-REGEX,^https://lf-cdn-tos\.bytescm\.com/obj/static/ad/,REJECT
+DOMAIN-SUFFIX,unet.quark.cn,REJECT
+
+# ---- 快手联盟 ----
+DOMAIN-SUFFIX,open.e.kuaishou.com,REJECT
+
+# ---- 阿里 adash 广告埋点 / deeplink ----
+DOMAIN,h-adashx4bc.ut.taobao.com,REJECT
+DOMAIN-SUFFIX,userlink.alicdn.com,REJECT
+
+# ---- 京东京准通 / 开普勒（jzt site 147296）----
+DOMAIN-SUFFIX,dg.k.jd.com,REJECT
+DOMAIN-SUFFIX,orbit.jd.com,REJECT
+
+[Script]
+douban-ad-feed = type=http-response,pattern=^https://frodo\.douban\.com/api/v2/(home_ads|home_banner|erebor/feed_ad|group/[0-9]+/ad),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-ad.js
+douban-ad-splash = type=http-response,pattern=^https://api\.douban\.com/v2/app_ads/,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-ad.js
+
+[MITM]
+hostname = %APPEND% img*.doubanio.com, lf-cdn-tos.bytescm.com, frodo.douban.com, api.douban.com
