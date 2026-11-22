@@ -1,64 +1,65 @@
-#!MANAGED-CONFIG https://raw.githubusercontent.com/SydawN/loon/main/douban-ad.plugin interval=86400
-
-[Plugin]
-name=豆瓣去广告
-desc=移除豆瓣 App 开屏、首页横幅与信息流广告；拦截穿山甲、优量汇、快手联盟、百度联盟、京准通、阿里 adash 等广告 SDK 与埋点域名。
-author=SydawN
-icon=https://www.douban.com/favicon.ico
-apiVersion=1.1
-homepage=https://github.com/SydawN/loon
-date=2026-11-22
+#!name=豆瓣去广告
+#!desc=移除豆瓣开屏、首页横幅与信息流广告；拦截优量汇、穿山甲、快手联盟、百度联盟、京准通、阿里 adash 等广告 SDK 与埋点。
+#!author=SydawN
+#!homepage=https://github.com/SydawN/loon
+#!raw-url=https://github.com/SydawN/loon/raw/main/douban-ad.plugin
+#!icon=https://www.douban.com/favicon.ico
+#!category=SydawN 的插件
+#!tag = 去广告, 豆瓣
+#!date=2026-11-22 13:00:00
 
 [Rule]
-# ---- 豆瓣自有广告系统（dale）----
-DOMAIN,erebor.douban.com,REJECT
-URL-REGEX,^https://img\d+\.doubanio\.com/view/dale-online/,REJECT
+# 豆瓣自有广告系统 dale
+DOMAIN, erebor.douban.com, REJECT
+URL-REGEX, ^https://img\d+\.doubanio\.com/view/dale-online/, REJECT
 
-# ---- 百度联盟点击跳转（实测 http 明文，无需 MITM）----
-URL-REGEX,^http://m\.baidu\.com/baidu\.php,REJECT
-DOMAIN-SUFFIX,mobads.baidu.com,REJECT
-DOMAIN-SUFFIX,mobads-logs.baidu.com,REJECT
-DOMAIN-SUFFIX,cpro.baidu.com,REJECT
-DOMAIN-SUFFIX,pos.baidu.com,REJECT
-DOMAIN-SUFFIX,union.baidu.com,REJECT
-DOMAIN-SUFFIX,eclick.baidu.com,REJECT
-DOMAIN-SUFFIX,nsclick.baidu.com,REJECT
-DOMAIN-SUFFIX,entry.baidu.com,REJECT
-DOMAIN-SUFFIX,hmma.baidu.com,REJECT
-DOMAIN-SUFFIX,mtj.baidu.com,REJECT
+# 百度联盟点击跳转（http 明文，无需 MITM）
+URL-REGEX, ^http://m\.baidu\.com/baidu\.php, REJECT
+DOMAIN-SUFFIX, mobads.baidu.com, REJECT
+DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
+DOMAIN-SUFFIX, cpro.baidu.com, REJECT
+DOMAIN-SUFFIX, pos.baidu.com, REJECT
+DOMAIN-SUFFIX, union.baidu.com, REJECT
+DOMAIN-SUFFIX, eclick.baidu.com, REJECT
+DOMAIN-SUFFIX, nsclick.baidu.com, REJECT
+DOMAIN-SUFFIX, entry.baidu.com, REJECT
+DOMAIN-SUFFIX, hmma.baidu.com, REJECT
+DOMAIN-SUFFIX, mtj.baidu.com, REJECT
 
-# ---- 穿山甲（字节 Pangle），site_id 5003518 ----
-DOMAIN,webcast-open.douyin.com,REJECT
-DOMAIN-SUFFIX,pangle.io,REJECT
-DOMAIN-SUFFIX,gromore.cn,REJECT
-DOMAIN-SUFFIX,oceanengine.com,REJECT
-URL-REGEX,^https://lf-cdn-tos\.bytescm\.com/obj/static/ad/,REJECT
-DOMAIN-SUFFIX,unet.quark.cn,REJECT
+# 穿山甲（site_id 5003518）
+DOMAIN, webcast-open.douyin.com, REJECT
+DOMAIN-SUFFIX, pangle.io, REJECT
+DOMAIN-SUFFIX, gromore.cn, REJECT
+DOMAIN-SUFFIX, oceanengine.com, REJECT
+URL-REGEX, ^https://lf-cdn-tos\.bytescm\.com/obj/static/ad/, REJECT
+DOMAIN-SUFFIX, unet.quark.cn, REJECT
 
-# ---- 优量汇 / 腾讯广告（app 1106295950）----
-DOMAIN-SUFFIX,gdt.qq.com,REJECT
-DOMAIN,e.qq.com,REJECT
-DOMAIN-SUFFIX,pgdt.gtimg.cn,REJECT
-DOMAIN-SUFFIX,adsmogo.com,REJECT
+# 优量汇 / 腾讯广告（app 1106295950）
+DOMAIN-SUFFIX, gdt.qq.com, REJECT
+DOMAIN, e.qq.com, REJECT
+DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
+DOMAIN-SUFFIX, adsmogo.com, REJECT
 
-# ---- 快手联盟 ----
-DOMAIN-SUFFIX,open.e.kuaishou.com,REJECT
-DOMAIN-SUFFIX,kuaishouzt.com,REJECT
+# 快手联盟
+DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
+DOMAIN-SUFFIX, kuaishouzt.com, REJECT
 
-# ---- 阿里 adash 广告埋点 / deeplink / 阿里妈妈 ----
-DOMAIN,h-adashx4bc.ut.taobao.com,REJECT
-DOMAIN-SUFFIX,userlink.alicdn.com,REJECT
-DOMAIN-SUFFIX,tanx.com,REJECT
-DOMAIN-SUFFIX,alimama.com,REJECT
+# 阿里 adash / deeplink / 阿里妈妈
+DOMAIN, h-adashx4bc.ut.taobao.com, REJECT
+DOMAIN-SUFFIX, userlink.alicdn.com, REJECT
+DOMAIN-SUFFIX, tanx.com, REJECT
+DOMAIN-SUFFIX, alimama.com, REJECT
 
-# ---- 京东京准通 / 开普勒（jzt site 147296）----
-DOMAIN-SUFFIX,jzt.jd.com,REJECT
-DOMAIN-SUFFIX,dg.k.jd.com,REJECT
-DOMAIN-SUFFIX,orbit.jd.com,REJECT
+# 京东京准通 / 开普勒
+DOMAIN-SUFFIX, jzt.jd.com, REJECT
+DOMAIN-SUFFIX, dg.k.jd.com, REJECT
+DOMAIN-SUFFIX, orbit.jd.com, REJECT
 
 [Script]
-douban-ad-feed = type=http-response,pattern=^https://frodo\.douban\.com/api/v2/(home_ads|home_banner|erebor/feed_ad|group/[0-9]+/ad),requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-ad.js
-douban-ad-splash = type=http-response,pattern=^https://api\.douban\.com/v2/app_ads/,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-ad.js
+# 首页广告位、横幅、信息流广告、小组页广告位
+http-response ^https://frodo\.douban\.com/api/v2/(home_ads|home_banner|erebor/feed_ad|group/[0-9]+/ad) script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-ad.js, requires-body=true, timeout=30, tag=豆瓣广告接口
+# 开屏竞价 / 预加载 / 展示上报
+http-response ^https://api\.douban\.com/v2/app_ads/ script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/douban-ad.js, requires-body=true, timeout=30, tag=豆瓣开屏接口
 
 [MITM]
-hostname = %APPEND% img*.doubanio.com, lf-cdn-tos.bytescm.com, frodo.douban.com, api.douban.com
+hostname = img1.doubanio.com, img2.doubanio.com, img3.doubanio.com, img4.doubanio.com, img5.doubanio.com, img6.doubanio.com, img7.doubanio.com, img8.doubanio.com, img9.doubanio.com, lf-cdn-tos.bytescm.com, frodo.douban.com, api.douban.com

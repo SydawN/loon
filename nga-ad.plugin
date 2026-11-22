@@ -1,81 +1,78 @@
-#!MANAGED-CONFIG https://raw.githubusercontent.com/SydawN/loon/main/nga-ad.plugin interval=86400
-
-[Plugin]
-name=NGA 去广告
-desc=拦截穿山甲、优量汇、快手联盟、百度联盟、京准通等广告 SDK 与点击跳转域名。app_inter 的 banner_list / recmd_topic / get_event_app 实测均为官方运营内容，本插件不再改写。
-author=SydawN
-icon=https://img.nga.cn/favicon.ico
-apiVersion=1.1
-homepage=https://github.com/SydawN/loon
-date=2026-11-22
+#!name=NGA 去广告
+#!desc=拦截优量汇、快手联盟、亿典、mobrtb、百度联盟、京准通、阿里妈妈等广告 SDK 与点击跳转；并把 adfree 字段伪装为已免广告。banner_list / recmd_topic / get_event_app 实测均为官方运营内容，不做改写。
+#!author=SydawN
+#!homepage=https://github.com/SydawN/loon
+#!raw-url=https://github.com/SydawN/loon/raw/main/nga-ad.plugin
+#!icon=https://img.nga.cn/favicon.ico
+#!category=SydawN 的插件
+#!tag = 去广告, NGA
+#!date=2026-11-22 13:00:00
 
 [Rule]
-# ---- 优量汇素材 / 联盟角标（实测开屏会加载 ylg_logo.png）----
-# 作用有限：只能让"G 广告"角标裂图，去不掉已缓存的广告画面
-DOMAIN,sigcdn.oss-cn-beijing.aliyuncs.com,REJECT
+# 优量汇素材与联盟角标（实测开屏会加载 ylg_logo.png）
+DOMAIN, sigcdn.oss-cn-beijing.aliyuncs.com, REJECT
 
-# ---- 百度联盟点击跳转（实测为 http 明文，无需 MITM）----
-URL-REGEX,^http://m\.baidu\.com/baidu\.php,REJECT
-DOMAIN-SUFFIX,mobads.baidu.com,REJECT
-DOMAIN-SUFFIX,mobads-logs.baidu.com,REJECT
-DOMAIN-SUFFIX,cpro.baidu.com,REJECT
-DOMAIN-SUFFIX,pos.baidu.com,REJECT
-DOMAIN-SUFFIX,cbjs.baidu.com,REJECT
-DOMAIN-SUFFIX,union.baidu.com,REJECT
-DOMAIN-SUFFIX,eclick.baidu.com,REJECT
-DOMAIN-SUFFIX,nsclick.baidu.com,REJECT
-DOMAIN-SUFFIX,entry.baidu.com,REJECT
-DOMAIN-SUFFIX,hmma.baidu.com,REJECT
-DOMAIN-SUFFIX,mtj.baidu.com,REJECT
-DOMAIN-SUFFIX,cpro.baidustatic.com,REJECT
-DOMAIN-SUFFIX,dup.baidustatic.com,REJECT
+# 百度联盟点击跳转（实测为 http 明文，无需 MITM）
+URL-REGEX, ^http://m\.baidu\.com/baidu\.php, REJECT
+DOMAIN-SUFFIX, mobads.baidu.com, REJECT
+DOMAIN-SUFFIX, mobads-logs.baidu.com, REJECT
+DOMAIN-SUFFIX, cpro.baidu.com, REJECT
+DOMAIN-SUFFIX, pos.baidu.com, REJECT
+DOMAIN-SUFFIX, cbjs.baidu.com, REJECT
+DOMAIN-SUFFIX, union.baidu.com, REJECT
+DOMAIN-SUFFIX, eclick.baidu.com, REJECT
+DOMAIN-SUFFIX, nsclick.baidu.com, REJECT
+DOMAIN-SUFFIX, entry.baidu.com, REJECT
+DOMAIN-SUFFIX, hmma.baidu.com, REJECT
+DOMAIN-SUFFIX, mtj.baidu.com, REJECT
+DOMAIN-SUFFIX, cpro.baidustatic.com, REJECT
+DOMAIN-SUFFIX, dup.baidustatic.com, REJECT
 
-# ---- 穿山甲 / 巨量引擎（NGA aid=5000546）----
-DOMAIN-SUFFIX,pangle.io,REJECT
-DOMAIN-SUFFIX,gromore.cn,REJECT
-DOMAIN-SUFFIX,oceanengine.com,REJECT
-DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT
-DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
+# 穿山甲 / 巨量引擎（NGA aid=5000546）
+DOMAIN-SUFFIX, pangle.io, REJECT
+DOMAIN-SUFFIX, gromore.cn, REJECT
+DOMAIN-SUFFIX, oceanengine.com, REJECT
+DOMAIN-SUFFIX, pangolin-sdk-toutiao.com, REJECT
+DOMAIN-SUFFIX, pglstatp-toutiao.com, REJECT
 
-# ---- 优量汇 / 腾讯广告 ----
-DOMAIN-SUFFIX,gdt.qq.com,REJECT
-DOMAIN,e.qq.com,REJECT
-DOMAIN-SUFFIX,pgdt.gtimg.cn,REJECT
-DOMAIN-SUFFIX,adsmogo.com,REJECT
-DOMAIN,tid.m.qq.com,REJECT
+# 优量汇 / 腾讯广告
+DOMAIN-SUFFIX, gdt.qq.com, REJECT
+DOMAIN, e.qq.com, REJECT
+DOMAIN-SUFFIX, pgdt.gtimg.cn, REJECT
+DOMAIN-SUFFIX, adsmogo.com, REJECT
+DOMAIN, tid.m.qq.com, REJECT
 
-# ---- mobrtb（RTB 广告平台，实测开屏素材 cdn.mobrtb.com/whale/static/*.jpeg，720x1280）----
-DOMAIN-SUFFIX,mobrtb.com,REJECT
-# ---- 同链路竞价与追踪（本次同批实测）----
-DOMAIN-SUFFIX,52qumao.com,REJECT
-DOMAIN-SUFFIX,microengine.cn,REJECT
+# mobrtb（实测开屏素材 cdn.mobrtb.com/whale/static/*.jpeg 720x1280）
+DOMAIN-SUFFIX, mobrtb.com, REJECT
+DOMAIN-SUFFIX, 52qumao.com, REJECT
+DOMAIN-SUFFIX, microengine.cn, REJECT
 
-# ---- 亿典广告平台 ydmob（北京亿典科技，实测开屏曝光上报走 api.ocpx.ydmob.com）----
-DOMAIN-SUFFIX,ydmob.com,REJECT
+# 亿典广告平台（实测开屏曝光上报 api.ocpx.ydmob.com）
+DOMAIN-SUFFIX, ydmob.com, REJECT
 
-# ---- 快手联盟素材 CDN（实测开屏淘宝闪购广告走 p23.a.yximgs.com）----
-# 注意：a.yximgs.com 同时承载帖子里的快手外链图，故只精确挡广告分片
-DOMAIN,p23.a.yximgs.com,REJECT
-DOMAIN-SUFFIX,open.e.kuaishou.com,REJECT
-DOMAIN-SUFFIX,kuaishouzt.com,REJECT
+# 快手联盟素材分片（a.yximgs.com 同时承载帖子外链图，只挡广告分片）
+DOMAIN, p23.a.yximgs.com, REJECT
+DOMAIN-SUFFIX, open.e.kuaishou.com, REJECT
+DOMAIN-SUFFIX, kuaishouzt.com, REJECT
 
-# ---- 京东京准通 / 开普勒 ----
-DOMAIN-SUFFIX,jzt.jd.com,REJECT
-DOMAIN-SUFFIX,dg.k.jd.com,REJECT
-DOMAIN-SUFFIX,orbit.jd.com,REJECT
+# 京东京准通 / 开普勒
+DOMAIN-SUFFIX, jzt.jd.com, REJECT
+DOMAIN-SUFFIX, dg.k.jd.com, REJECT
+DOMAIN-SUFFIX, orbit.jd.com, REJECT
 
-# ---- 阿里妈妈 ----
-DOMAIN-SUFFIX,tanx.com,REJECT
-DOMAIN-SUFFIX,alimama.com,REJECT
-DOMAIN-SUFFIX,mmstat.com,REJECT
+# 阿里妈妈
+DOMAIN-SUFFIX, tanx.com, REJECT
+DOMAIN-SUFFIX, alimama.com, REJECT
+DOMAIN-SUFFIX, mmstat.com, REJECT
 
-# ---- NGA 实测第三方追踪 ----
-DOMAIN-SUFFIX,youku-dsp.youku.com,REJECT
-DOMAIN,content-understand-strategy.sm.cn,REJECT
-URL-REGEX,^https://lf-cdn-tos\.bytescm\.com/obj/static/ad/,REJECT
+# NGA 实测第三方追踪
+DOMAIN-SUFFIX, youku-dsp.youku.com, REJECT
+DOMAIN, content-understand-strategy.sm.cn, REJECT
+URL-REGEX, ^https://lf-cdn-tos\.bytescm\.com/obj/static/ad/, REJECT
 
 [Script]
-nga-adfree = type=http-response,pattern=^https://ngabbs\.com/app_api\.php,requires-body=1,max-size=0,script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js
+# 把 user&__act=detail 响应里的 adfree 改成 1
+http-response ^https://ngabbs\.com/app_api\.php script-path=https://raw.githubusercontent.com/SydawN/loon/main/scripts/nga-adfree.js, requires-body=true, timeout=30, tag=NGA伪装免广告
 
 [MITM]
-hostname = %APPEND% lf-cdn-tos.bytescm.com, ngabbs.com
+hostname = ngabbs.com, lf-cdn-tos.bytescm.com, img.nga.cn, img4.nga.cn
