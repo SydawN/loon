@@ -18,7 +18,15 @@ if (/__act=static_file_list/i.test(url)) {
       obj.result.forEach(function (item) {
         if (!item || typeof item !== 'object') return;
         if (Array.isArray(item.EXTRA_ADS_RULES)) item.EXTRA_ADS_RULES = [];
-        if (Array.isArray(item.intro001)) item.intro001 = [];
+        if (Array.isArray(item.intro001)) {
+          // 关键：不能把 intro001 清成 []，那会让 App 认为「服务端无配置」而回退内置默认开屏
+          // 正确做法是只保留穿山甲类型，穿山甲接口已被 404 拦住，开屏拿不到素材
+          // 必须摘掉 type=com.dn 那条：它走 NGA 自有图床 img.nga.178.com，不走任何联盟
+          const kept = item.intro001.filter(function (x) {
+            return x && typeof x === 'object' && x.type !== 'com.dn';
+          });
+          item.intro001 = kept.length ? kept : [{ type: 'com.bytedance' }];
+        }
       });
     }
     $done({ body: JSON.stringify(obj) });
